@@ -14,16 +14,21 @@ module.exports = function (files, profile) {
     while (line_number < lines.length) {
       const line = lines[line_number]
       if (_.isUndefined(focused_entity)) {
-        const regex = new RegExp(`${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`)
+        const regex = new RegExp(
+          `${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
+        )
         // const openTag = line.match(/\$(\w*)<:([A-Za-z0-9_]+)(.*)/);
         const openTag = line.match(regex)
         if (openTag) {
           const tag = _.get(openTag, "[1]", "").trim()
           const snippetId = _.get(openTag, "[2]", "").trim()
           let rest = _.get(openTag, "[3]", "").trim()
-          rest = rest.replace(/([A-Za-z0-9_])+\s*=\s*(_[A-Za-z0-9_]+)/, (_full, variable, value) => {
+          rest = rest.replace(
+            /([A-Za-z0-9_])+\s*=\s*(_[A-Za-z0-9_]+)/,
+            (_full, variable, value) => {
               return `${variable}="${value}"` // TODO: look up global variable
-          })
+            }
+          )
           console.log(rest)
           let params = {}
           try {
@@ -62,7 +67,9 @@ module.exports = function (files, profile) {
       } else {
         focused_entity.end += 1
 
-        const regex = new RegExp(`${profile.marker_prefix}\\$${focused_entity.tag}>`)
+        const regex = new RegExp(
+          `${profile.marker_prefix}\\$${focused_entity.tag}>`
+        )
         const closeTag = line.match(regex)
         if (closeTag) {
           // const rest = _.get(closeTag, '[1]', '').trim()
