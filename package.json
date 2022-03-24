@@ -1,0 +1,29 @@
+{
+  "name": "code-formation",
+  "version": "1.0.0",
+  "description": "Make migration scripts for arbitrary script files according to marker lines",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NLKNguyen/code-formation.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NLKNguyen/code-formation/issues"
+  },
+  "homepage": "https://github.com/NLKNguyen/code-formation#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "glob": "^7.2.0",
+    "json-colorizer": "^2.2.2",
+    "lodash": "^4.17.21",
+    "parse-pairs": "^1.1.0"
+  }
+}
