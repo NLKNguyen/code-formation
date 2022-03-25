@@ -1,4 +1,5 @@
-const glob = require("glob")
+// const glob = require("glob")
+const glob = require("glob-all")
 const path = require("path")
 const fs = require("fs")
 const _ = require("lodash")
@@ -8,11 +9,14 @@ const chalk = require("chalk")
 
 const scan_snippets = require("./scan-snippets.js")
 const scan_exports = require("./scan-exports.js")
+const scan_slots = require("./scan-slots.js")
 const eval_exports = require("./eval-exports.js")
+
+const Options = require("./options.js")
 
 const profile = {
   marker_prefix: "",
-  export_dir: "./test-out/",
+  outdir: "./test-out/",
   newline_char: "\n",
   variables: {},
   snippets: {},
@@ -22,9 +26,24 @@ const profile = {
 // console.log(parsePairs.default('test=5'))
 // const nReadlines = require('n-readlines');
 
-let sourceFiles = glob.sync(`./test/**/*.sql`)
-console.log(sourceFiles)
 try {
+  let { outdir, scan } = Options.read([
+    Options.outdir,
+    Options.scan,
+  ])
+
+  if (!outdir) {
+    throw new Error("Missing input argument --outdir")
+  }
+
+  if (!scan) {
+    throw new Error("Missing input argument --scan")
+  }
+  scan = scan.split(";").map((e) => e.trim())
+
+  let sourceFiles = glob.sync(scan, { nodir: true }) //`./test/**/*.sql`
+  console.log(sourceFiles)
+
   // scan_variables(sourceFiles, profile)
 
   scan_snippets(sourceFiles, profile)
@@ -32,6 +51,8 @@ try {
   // scan_plugs(sourceFiles, profile)
 
   // eval_plugs(sourceFiles, profile)
+
+  //   scan_slots(sourceFiles, profile)
 
   scan_exports(sourceFiles, profile) // scan_slots(sourceFiles, profile)
   console.log(
@@ -48,6 +69,7 @@ try {
   // write_exports(profile)
 
   // console.log(profile)
+  console.log(colorize({ outdir, scan }))
 } catch (e) {
   console.log(chalk.red(e))
 }
