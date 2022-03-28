@@ -8,29 +8,43 @@ const colorize = require("json-colorizer")
 const chalk = require("chalk")
 
 const scan_snippets = require("./scan-snippets.js")
-const scan_exports = require("./scan-exports.js")
-const scan_slots = require("./scan-slots.js")
-const eval_exports = require("./eval-exports.js")
+const scan_blobs = require("./scan-blobs.js")
+// const scan_slots = require("./scan-slots.js")
+const eval_blobs = require("./eval-blobs.js")
+const write_output = require("./write-output.js")
 
 const Options = require("./options.js")
 
-const profile = {
-  marker_prefix: "",
-  outdir: "./test-out/",
-  newline_char: "\n",
-  variables: {},
-  snippets: {},
-  exports: [],
-}
+const winston = require("winston")
 
-// console.log(parsePairs.default('test=5'))
-// const nReadlines = require('n-readlines');
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  // defaultMeta: { service: 'user-service' },
+  transports: [
+    // - Write all logs with importance level of `error` or less to `error.log`
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+
+    // - Write all logs with importance level of `info` or less to `combined.log`
+    // new winston.transports.File({ filename: 'combined.log' }),
+  ],
+})
+
+logger.add(
+  new winston.transports.Console({
+    format: winston.format.simple(),
+  })
+)
+
+const log = logger
+
+// const log = {
+//   info: console.log,
+//   error: console.log,
+// }
 
 try {
-  let { outdir, scan } = Options.read([
-    Options.outdir,
-    Options.scan,
-  ])
+  let { outdir, scan } = Options.read([Options.outdir, Options.scan])
 
   if (!outdir) {
     throw new Error("Missing input argument --outdir")
@@ -41,8 +55,18 @@ try {
   }
   scan = scan.split(";").map((e) => e.trim())
 
-  let sourceFiles = glob.sync(scan, { nodir: true }) //`./test/**/*.sql`
-  console.log(sourceFiles)
+  let sourceFiles = glob.sync(scan, { nodir: true })
+  log.info(sourceFiles)
+
+  const profile = {
+    marker_prefix: "",
+    outdir,
+    newline_char: "\n",
+    section_separator: "\n",
+    variables: {},
+    snippets: {},
+    exports: [],
+  }
 
   // scan_variables(sourceFiles, profile)
 
@@ -54,48 +78,50 @@ try {
 
   //   scan_slots(sourceFiles, profile)
 
-  scan_exports(sourceFiles, profile) // scan_slots(sourceFiles, profile)
-  console.log(
+  scan_blobs(sourceFiles, profile) // scan_slots(sourceFiles, profile)
+
+  eval_blobs(sourceFiles, profile, log)
+
+  write_output(sourceFiles, profile, log)
+
+  log.verbose(
     colorize(profile, {
       pretty: true,
     })
   )
-  eval_exports(sourceFiles, profile)
 
   // scan_captures(profile)
-
   // eval_captures(profile)
-
   // write_exports(profile)
-
-  // console.log(profile)
-  console.log(colorize({ outdir, scan }))
+  // log.info(profile)
+  // log.info(colorize({ outdir, scan }))
 } catch (e) {
-  console.log(chalk.red(e))
+  log.info()
+  log.error(chalk.red(e))
 }
 
-// console.log(chalk.blue('test'))
+// // console.log(chalk.blue('test'))
 
-// eval_exports(profile)
-// const readline = require('readline');
-// const events = require('events');
+// // eval_blobs(profile)
+// // const readline = require('readline');
+// // const events = require('events');
 
-function parse_snippet_injection(line) {
-  const command = line.match(/!&:([A-Za-z0-9_-]+)(.*)/)
-  if (command) {
-    const id = _.get(command, "[1]", "").trim()
-    const rest = _.get(command, "[2]", "").trim()
-    const params = parsePairs.default(rest)
-    // console.log(id, params)
-    return {
-      snippet: id,
-      params,
-    }
-  }
+// function parse_snippet_injection(line) {
+//   const command = line.match(/!&:([A-Za-z0-9_-]+)(.*)/)
+//   if (command) {
+//     const id = _.get(command, "[1]", "").trim()
+//     const rest = _.get(command, "[2]", "").trim()
+//     const params = parsePairs.default(rest)
+//     // console.log(id, params)
+//     return {
+//       snippet: id,
+//       params,
+//     }
+//   }
 
-  return null
-}
+//   return null
+// }
 
-function render_snippet(snippet) {
-  console.log(snippet)
-}
+// function render_snippet(snippet) {
+//   console.log(snippet)
+// }

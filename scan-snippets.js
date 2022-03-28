@@ -3,6 +3,8 @@ const fs = require("fs")
 const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 
+const source_id = "scan-snippets"
+
 module.exports = function (files, profile) {
   files.forEach((file) => {
     const content = fs.readFileSync(file, "utf8").trim()
@@ -29,11 +31,11 @@ module.exports = function (files, profile) {
               return `${variable}="${value}"` // TODO: look up global variable
             }
           )
-          console.log(rest)
+          // console.log(rest)
           let params = {}
           try {
             params = parsePairs.default(rest)
-            console.log(params)
+            // console.log(params)
           } catch (e) {
             console.log("invalid params")
           }
@@ -56,7 +58,7 @@ module.exports = function (files, profile) {
             src: file,
             start: line_number,
             end: line_number,
-            content: [],
+            template: [],
           }
           _.set(profile, ["snippets", snippetId], new_snippet)
           snippetId
@@ -79,7 +81,7 @@ module.exports = function (files, profile) {
           line_number = focused_entity_start_line
           focused_entity = undefined
         } else {
-          focused_entity.content.push(line)
+          focused_entity.template.push(line)
         }
       }
       line_number += 1
