@@ -1,4 +1,5 @@
-<h1 align="center"> ⚔️Code Formation 🛡 </h1> 
+<h1 align="center">Code ⚔️ Formation</h1> 
+
 <!-- ⚙️🏗️🛡🐉🔮🐲 -->
 <p align="center">
   <a href="https://github.com/NLKNguyen/code-formation/blob/master/LICENSE" target="_blank">
@@ -27,17 +28,17 @@
 
 # 💡 Overview and thoughts
 
-This is an experimental stage of a context-free meta programming / code generation tool that automates a set of common programming/writing tasks by using a template-based DSL embedded directly in your scripts (typically as source comments or out-of-source text files). 
+This is an experimental stage of a context-free meta-programming/code generation tool that automates a set of common programming/writing tasks by using a template-based DSL embedded directly in your scripts (typically as source comments or out-of-source text files). 
 
-The motivation behind this is to solve 5 categories of problems that I found myself often getting into in software engineering, and it stretches beyond the use cases of code writing. Only 1 category is in focus of the current development.
+The motivation behind this is to solve 5 categories of problems that I found myself often getting into in software engineering, and it stretches beyond the use cases of code writing. Only 1 category is  under  the focus of the current development.
 
-This introduces a language called CFL (Code-Formation Language) that is used for configuring the text generation process right in your code base as a mean for meta programming, and it sits on top of [EJS](https://ejs.co/) template engine which means you can program dynamic code generation for high reusability. This language should be embeddable safely in your code as comments without affecting anything, and there are options to further prevent it from being confused with your own code syntax while parsing.
+This introduces a language called CFL (Code-Formation Language) that is used for configuring the text generation process right in your codebase as a means for meta-programming, and it sits on top of [EJS](https://ejs.co/) template engine which means you can program dynamic code generation for high reusability. This language should be embeddable safely in your code as comments without affecting anything, and there are options to further prevent it from being confused with your own code syntax while parsing.
 
-If you have used a template engine to render code for whatever reason, this tool will speak to you. At a minimum, this can be a code scalfolding tool. At a larger extend, it is intended to be generalized enough to suit your typical code generation needs so that you don't need to write yet another one-off tool.
+If you have used a template engine to render code for whatever reason, this tool will speak to you. At a minimum, this can be a code scaffolding tool. To a larger extent, it is intended to be generalized enough to suit your typical code generation needs so that you don't need to write yet another one-off tool.
 
-Eventually, it will be able to interpolate with external tools easily as one of the main goals because there are many great string processing CLI tools out there (sed, awk, jq, miller, random formatters, etc.), and that will be the easiest way to extend this tool's capabilities.
+Eventually, it will be able to interpolate with external tools easily as one of the main goals because there are many great string processing CLI tools out there (sed, awk, jq, miller, random transpilers/formatters, etc.), and that will be the easiest way to extend this tool's capabilities while reusing the developers' skills.
 
-Once CFL has enough features, likely turing complete, higher levels of meta programming will be possible, and there are foreseable use cases for that, but we will assess whether it's worth exploited due to the trade-off of mental gymnastic required to do meta-meta-programming.
+Once CFL has enough features, likely Turing complete, higher levels of meta-programming will be possible, and there are foreseeable use cases for that, but we will assess whether it's worth exploiting due to the trade-off of mental gymnastic required to do meta-meta-programming.
 
 You can start using this tool today, just be aware that it can be unstable at the early stage.
 # 🛠️ Installation
@@ -77,7 +78,7 @@ node index.js --help
 If you want to install this globally, you can do so as well from the same directory:
 
 ```sh
-npm install -g
+npm link
 ```
 
 Now you can use it anywhere in your terminal:
@@ -103,7 +104,7 @@ Code Formation lets you define chunks of text in many files and unifies them in 
 **Example 1:** make SQL migration scripts from standalone DDL files
 
 ```
-code-formation --scan ./examples/01_sql_migration_from_scripts/input/** --outdir ./examples/01_sql_migration_from_scripts/output/
+code-formation --scan ./examples/01_sql_migration_from_scripts/input/* --outdir ./examples/01_sql_migration_from_scripts/output/
 ```
 
 

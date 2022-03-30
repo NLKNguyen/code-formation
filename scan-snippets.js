@@ -5,16 +5,16 @@ const parsePairs = require("parse-pairs")
 
 const source_id = "scan-snippets"
 
-module.exports = function (files, profile) {
+module.exports = function (files, profile, log) {
   files.forEach((file) => {
     const content = fs.readFileSync(file, "utf8").trim()
     const lines = content.split(/\r?\n/)
-    let line_number = 0
+    let line_index = 0
     const local_entities = []
     let focused_entity
     let focused_entity_start_line = 0
-    while (line_number < lines.length) {
-      const line = lines[line_number]
+    while (line_index < lines.length) {
+      const line = lines[line_index]
       if (_.isUndefined(focused_entity)) {
         const regex = new RegExp(
           `${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
@@ -35,9 +35,8 @@ module.exports = function (files, profile) {
           let params = {}
           try {
             params = parsePairs.default(rest)
-            // console.log(params)
           } catch (e) {
-            console.log("invalid params")
+            throw new Error(`${file}:${line_index + 1} invalid parameters`)
           }
 
           const invalid_params = _.keys(params)
@@ -47,7 +46,7 @@ module.exports = function (files, profile) {
 
           if (invalid_params) {
             throw new Error(
-              `${file}:${line_number} local parameters of a snippet can't start with _ like ${invalid_params}`
+              `${file}:${line_index} local parameters of a snippet can't start with _ like ${invalid_params}`
             )
           }
 
@@ -56,15 +55,15 @@ module.exports = function (files, profile) {
             tag,
             params,
             src: file,
-            start: line_number,
-            end: line_number,
+            start: line_index,
+            end: line_index,
             template: [],
           }
           _.set(profile, ["snippets", snippetId], new_snippet)
-          snippetId
+
           // console.log(openTag)
           focused_entity = new_snippet
-          focused_entity_start_line = line_number
+          focused_entity_start_line = line_index
         }
       } else {
         focused_entity.end += 1
@@ -78,13 +77,13 @@ module.exports = function (files, profile) {
           // console.log(closeTag)
           local_entities.push(focused_entity)
 
-          line_number = focused_entity_start_line
+          line_index = focused_entity_start_line
           focused_entity = undefined
         } else {
           focused_entity.template.push(line)
         }
       }
-      line_number += 1
+      line_index += 1
     }
   })
 }

@@ -1,28 +1,25 @@
 const path = require("path")
 const fs = require("fs")
 const _ = require("lodash")
-const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
+const error = require("./error")
 
 module.exports = function (files, profile, log) {
   // log.info(chalk.cyanBright("write-output"))
-  const OUTDIR = _.get(profile, "outdir")
 
   const output = _.get(profile, "output")
   const fileslots = _.keys(output).sort()
 
-  for (let fileslot of fileslots) {
-    const OUTFILE = fileslot
-    // const outfile = key
-    const package = output[fileslot]
+  for (let output_path of fileslots) {
+    const package = output[output_path]
     const orders = _.keys(package).sort()
 
     let data = ""
     let last_separator
 
-    for (let order of orders) {  
-      const {state, items} = package[order]    
+    for (let order of orders) {
+      const { state, items } = package[order]
       // items = _.get(package[order], "items")
       // last_separator = _.get(package[order], ["state","options", "SECTION_SEPARATOR"], "")
       last_separator = _.get(state, ["options", "SECTION_SEPARATOR"], "")
@@ -42,9 +39,10 @@ module.exports = function (files, profile, log) {
 
     // log.info(data)
     try {
-      fs.writeFileSync(OUTFILE, data)
+      log.info(`writing output to ${chalk.cyanBright(output_path)}`)
+      fs.writeFileSync(output_path, data)
     } catch (e) {
-      throw new Error(`${e}`)
+      throw new Error(error.message(e, log))
     }
     // const SRC = _.get(component, ["SRC"])
   }

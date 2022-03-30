@@ -1,19 +1,32 @@
 {
   "name": "code-formation",
-  "version": "1.0.0",
-  "description": "Make migration scripts for arbitrary script files according to marker lines",
+  "version": "0.0.1",
+  "description": "experimental template engine with embeddable DSL for meta-programming",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "options.js",
+    "error.js",
+    "scan-blobs.js",
+    "eval-blobs.js",
+    "scan-snippets.js",
+    "eval-snippet-injections.js",
+    "write-output.js",
+    "README.md",
+    "LICENSE"
+  ],
   "directories": {
     "test": "test"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": "./index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NLKNguyen/code-formation.git"
   },
-  "author": "",
+  "author": "Nikyle Nguyen",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/NLKNguyen/code-formation/issues"
@@ -26,6 +39,7 @@
     "glob-all": "^3.3.0",
     "json-colorizer": "^2.2.2",
     "lodash": "^4.17.21",
-    "parse-pairs": "^1.1.0"
+    "parse-pairs": "^1.1.0",
+    "winston": "^3.6.0"
   }
 }

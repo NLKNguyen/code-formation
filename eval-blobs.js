@@ -4,31 +4,43 @@ const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
-
+const error = require('./error.js')
 const eval_snippet_injections = require("./eval-snippet-injections")
 
 const source_id = "eval-blobs"
 
 module.exports = function (files, profile, log) {
   // console.log(chalk.cyanBright("eval-blobs"))
-  const OUTDIR = _.get(profile, "outdir")
+  const OUTDIR = _.get(profile, "OUTDIR")
 
   for (let component of _.get(profile, "tasks", [])) {
     // TODO: caller should specify the task and this only apply to that
-    // const SRC = _.get(component, ["SRC"])
 
-    const params = _.get(component, ["params"])
+    const { src, start, end, params }  = component
+    
     const OUT = _.get(params, ["OUT"])
-    const OUTFILE = _.get(params, ["OUT"])
-    // const outfile = OUT.split(":")[0]
-    // const outslot = OUT.split(':')
-    const OUTSLOT = ""
+    if (!OUT) {
+      throw new Error(`[${source_id}] Missing OUT parameter on ${src}:${start + 1}`)
+    }
+    const outparts =  OUT.split(":")
+    let OUTFILE = outparts[0]
+    let OUTSLOT = ""
+    if (outparts.length > 1) {
+      OUTSLOT = outparts[1]
+    }
+
 
     const ORDER = _.get(params, ["ORDER"], "")
-    const NEWLINE_CHAR = _.get(
+    const LINE_FEED = _.get(
       params,
-      ["NEWLINE_CHAR"],
-      _.get(profile, "newline_char")
+      ["LINE_FEED"],
+      _.get(profile, "LINE_FEED")
+    )
+
+    const LINE_PREFIX = _.get(
+      params,
+      ["LINE_FEED"],
+      _.get(profile, "LINE_PREFIX")
     )
 
     let SECTION_SEPARATOR = _.get(params, ["SECTION_SEPARATOR"])
@@ -40,7 +52,7 @@ module.exports = function (files, profile, log) {
     }
 
     // SECTION_SEPARATOR = JSON.parse(`"${SECTION_SEPARATOR}"`)
-    const template_str = _.join(_.get(component, "template", []), NEWLINE_CHAR)
+    const template_str = _.join(_.get(component, "template", []), LINE_FEED)
     // console.log(
     //   colorize(component, {
     //     pretty: true,
@@ -52,11 +64,13 @@ module.exports = function (files, profile, log) {
     try {
       const compiled = _.template(template_str)
       const variables = {
-        OUT,
         OUTDIR,
+        OUT,                
         OUTFILE,
+        OUTSLOT,
         ORDER,
-        NEWLINE_CHAR,
+        LINE_FEED,
+        LINE_PREFIX,
         ...local_params,
       }
       // console.log(
@@ -65,16 +79,38 @@ module.exports = function (files, profile, log) {
       //   })
       // )
       const rendered = compiled(variables)
-      console.log(rendered)
-
-      // TODO: inject snippets here
-
+      // log.verbose(rendered)
+          
       const enriched = eval_snippet_injections(
         rendered,
         variables,
         profile,
         log
       )
+
+      const lines = enriched.split(/\r?\n/)
+      let formatted_lines = []
+      let continuous_empty_lines = 0
+      for(let line of lines) {
+        if (_.isEmpty(line.trim())) {
+          continuous_empty_lines += 1
+          if (continuous_empty_lines > 1) {
+            continue
+          }
+        } else {
+          continuous_empty_lines = 0
+        }
+
+        formatted_lines.push(line)
+      }
+
+      formatted_lines = formatted_lines.map(e => LINE_PREFIX + e)
+      // for(let i = 0; i < formatted_lines.length; i += 1) {
+      //   formatted_lines[i] = LINE_PREFIX + formatted_lines[i]
+      // }
+
+      const formatted_text = formatted_lines.join(LINE_FEED)
+      log.verbose(formatted_text)
 
       // if (!_.has(profile, ['content', ORDER])) {
       //   _.set(profile, ['content', ORDER], [])
@@ -96,9 +132,9 @@ module.exports = function (files, profile, log) {
         }
       )
       destination.items.push({
-        content: enriched,
+        content: formatted_text,
         options: {
-          NEWLINE_CHAR,
+          LINE_FEED,
           SECTION_SEPARATOR,
         },
         // separator: SECTION_SEPARATOR,
@@ -109,15 +145,13 @@ module.exports = function (files, profile, log) {
       // _.set(profile, ['content', 'a'], output)
       // profile['content'] = rendered
 
-      // console.log(outdir, outfile)
-      // fs.writeFileSync(path.join(outdir, outfile), rendered)
+      // console.log(OUTDIR, OUTFILE)
+      // fs.writeFileSync(path.join(OUTDIR, OUTFILE), rendered)
     } catch (e) {
-      const start = _.get(component, "start")
-      const end = _.get(component, "end")
-      const src = _.get(component, "src")
+           
 
       throw new Error(
-        `${src}:${start + 1}-${end + 1}: failed template compilation. ${e}`
+        `[${source_id}] Failed template compilation ${src}:${start + 1}-${end + 1}: ${error.message(e,log)}`
       )
     }
   }

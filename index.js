@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // const glob = require("glob")
 const glob = require("glob-all")
 const path = require("path")
@@ -56,21 +58,22 @@ try {
   scan = scan.split(";").map((e) => e.trim())
 
   let sourceFiles = glob.sync(scan, { nodir: true })
-  log.info(sourceFiles)
+  log.info(`scanning files: ${colorize(sourceFiles, {pretty: true})}`)
 
   const profile = {
-    marker_prefix: "",
-    outdir,
-    newline_char: "\n",
-    section_separator: "\n",
+    marker_prefix: "",    
     variables: {},
     snippets: {},
     exports: [],
+    OUTDIR: outdir,
+    LINE_FEED: "\n",
+    LINE_PREFIX: "",
+    SECTION_SEPARATOR: "\n"
   }
 
   // scan_variables(sourceFiles, profile)
 
-  scan_snippets(sourceFiles, profile)
+  scan_snippets(sourceFiles, profile, log)
 
   // scan_plugs(sourceFiles, profile)
 
@@ -78,7 +81,7 @@ try {
 
   //   scan_slots(sourceFiles, profile)
 
-  scan_blobs(sourceFiles, profile) // scan_slots(sourceFiles, profile)
+  scan_blobs(sourceFiles, profile, log) // scan_slots(sourceFiles, profile)
 
   eval_blobs(sourceFiles, profile, log)
 

@@ -1,0 +1,58 @@
+This snippet "delete_object_if_exists", enclosed by $< and $> syntax, provides the deletion statements for SQL objects.
+Within the snippet block is EJS template language that allows embedded programming logic and accessing variables that are supplied
+at runtime. The default parameters can be provided on the line as shown below.
+
+Depending on the provided parameters, the proper SQL statements are used.
+To delete a table, simply provide the parameter "table"
+To delete other objects from the table, specify the parameters "trigger", "procedure", or "check_constraint" along with "from_table".
+
+Optionally, you can override the default general configuration: CONTINUOUS_EMPTY_LINES=1 LINE_PREFIX="" LINE_FEED="\n"
+
+$<:delete_object_if_exists table="" trigger="" procedure="" check_constraint="" 
+
+<% if (table) { %>
+-- Check if user-defined table exists in order to drop
+IF (OBJECT_ID(N'<%= table %>', N'U') IS NOT NULL)
+BEGIN
+   DROP TABLE <%= table %>;
+END   
+<% } %>
+
+<% if (trigger) { %>
+-- Check if table trigger exists in order to drop
+IF (OBJECT_ID(N'<%= trigger %>', N'TR') IS NOT NULL)
+BEGIN
+   ALTER TABLE <%= from_table %>    
+   DROP TRIGGER <%= trigger %>;
+END
+<% } %>
+
+<% if (procedure) { %>
+-- Check if stored procedure exists in order to drop
+IF (OBJECT_ID(N'<%= procedure %>', N'P') IS NOT NULL)
+BEGIN
+   ALTER TABLE <%= from_table %>    
+   DROP PROCEDURE <%= procedure %>;
+END
+<% } %>
+
+<% if (check_constraint) { %> 
+-- Check if check constraint exists in order to drop
+IF (OBJECT_ID('<%= check_constraint %>', 'C') IS NOT NULL)
+BEGIN
+    ALTER TABLE <%= from_table %>
+    DROP CONSTRAINT <%= check_constraint %>;
+END
+<% } %>
+
+GO
+$>
+
+
+Here is another snippet named "go" that simply writes the GO statement which is often needed between multiple SQL transactions.
+In this example, you don't want to write GO raw in individual scripts as the IDE doesn't like that in the context of the design tool; 
+only when we render a migration script that combines multiple statements, then this GO statement needs to be injected at certain places.
+
+$<:go
+GO
+$>

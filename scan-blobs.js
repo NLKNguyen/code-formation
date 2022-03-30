@@ -3,10 +3,10 @@ const fs = require("fs")
 const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
-
+const error = require("./error.js")
 const source_id = "scan-blobs"
 
-module.exports = function (files, profile) {
+module.exports = function (files, profile, log) {
   files.forEach((file) => {
     const content = fs.readFileSync(file, "utf8").trim()
     const lines = content.split(/\r?\n/)
@@ -33,7 +33,7 @@ module.exports = function (files, profile) {
             try {
               params = parsePairs.default(rest)
             } catch (e) {
-              console.log("invalid params")
+              throw new Error(error.message(e, log))
             }
 
             const ORDER = _.get(params, ["ORDER"], "")
@@ -86,26 +86,7 @@ module.exports = function (files, profile) {
         }
         line_number += 1
       } catch (e) {
-        // function dumpError(err) {
-        //   if (typeof err === "object") {
-        //     if (err.message) {
-        //       console.log("\nMessage: " + err.message)
-        //     }
-        //     if (err.stack) {
-        //       console.log("\nStacktrace:")
-        //       console.log("====================")
-        //       console.log(err.stack)
-        //     }
-        //   } else {
-        //     console.log("dumpError :: argument is not an object")
-        //   }
-        // }
-
-        // dumpError(e)
-
-        var error_line = e.stack.split("\n")[1]
-        console.error(chalk.red(e.message) + "\n" + chalk.cyanBright(`${error_line}`))
-        throw new Error(`[${source_id}] failed to process ${file}`)
+        throw new Error(`[${source_id}] failed to process ${error.message(e, log)}`)
       }
     }
   })
