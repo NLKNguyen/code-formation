@@ -41,5 +41,10 @@
     "lodash": "^4.17.21",
     "parse-pairs": "^1.1.0",
     "winston": "^3.6.0"
-  }
+  },
+  "keywords": [
+    "template",
+    "metaprogramming",
+    "CFL"
+  ]
 }
