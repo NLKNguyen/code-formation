@@ -98,7 +98,7 @@ code-formation --help
 
 # ⭐ Understand through examples
 
-It's probably best to explain at this early stage by walking through examples that are included in [this repository](https://github.com/NLKNguyen/code-formation/tree/main/examples). Below are examples on how this tool can help in 5 categories. 
+It's probably best to explain at this early stage by walking through examples that are included in [this repository](https://github.com/NLKNguyen/code-formation/tree/main/examples). Below are examples on how this tool can help in 5 categories. Even though these are concrete examples derived from real-world usage of this tool, it is not limited to any referenced language or technology because the tool just deals with plain text, which can sometimes be of certain code language.
 
 ### Category 1: unify output from decentralized source files
 
@@ -118,13 +118,15 @@ Code Formation lets you define chunks of text in many files and unifies them in 
 code-formation --scan ./examples/01_sql_migration_from_scripts/input/* --outdir ./examples/01_sql_migration_from_scripts/output/
 ```
 
-The output file [`./examples/01_sql_migration_from_scripts/output/010_migration.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql) contains the result of the migration script generated in according to the rules specified in the input scripts. Below is the explanation:
+The output file [`./examples/01_sql_migration_from_scripts/output/010_migration.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql) contains the result of the migration script generated in according to the rules specified in the [input scripts](https://github.com/NLKNguyen/code-formation/tree/main/examples/01_sql_migration_from_scripts/input). 
+
+**Explanation:**
 
 With code-formation language (CFL), we can put the instructions as comments in the SQL scripts themselves so that they don't affect the behavior of these individual scripts. This language is parsed by simply finding the markers to determine the applicable blocks and ignoring the rest.
 
-For example, in `BlogPost.sql` we surround the CREATE TABLE statement with `!<` and `!>` block syntax to indicate a **blob block**; within it is EJS template code but we don't use any EJS specific feature here yet.
+For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/BlobPost.sql) we surround the CREATE TABLE statement with `!<` and `!>` block syntax to indicate a **blob block**; within it is EJS template code but we don't use any EJS specific feature here yet.
 
-On the opening tag line, we specify the `OUT` parameter for the output destination of this blob's rendered result. The `ORDER` parameter specifies the order of the rendering in case of having multiple blobs outputing to the same file; it's simply a key string to be ordered by, even if it can look like a number.  
+
 
 ```tsql
 -- !<: OUT="010_migration.sql" ORDER="100"
@@ -144,6 +146,8 @@ CREATE TABLE [dbo].[BlogPost]
 
 -- !>
 ```
+
+On the opening tag line, we specify the `OUT` parameter for the output destination of this blob's rendered result. The `ORDER` parameter specifies the order of the rendering in case of having multiple blobs outputing to the same file; it's simply a key string to be ordered by, even if it can look like a number.  
 
 **Note:** It's possible to have optional label for any block, like `!`OPTIONAL_LABEL`<`, `!`OPTIONAL_LABEL`>`, which is useful when there is nested closing tag inside, therefore using the tag label will ensure the intended closing tag must match the label of the opening tag.
 
@@ -182,6 +186,33 @@ $>
 + `CONTINUOUS_EMPTY_LINES=1` for a post-process formatting to remove unwanted continuous empty lines above this threshold
 
 **Note:** default parameters of the snippet definition can be overridden by the snippet injection parameters, including the configuration above.
+
+The result of the code we have seen so far is in the first part of the output file [010_migration.sql](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql)
+
+```tsql
+-- Check if user-defined table exists in order to drop
+IF (OBJECT_ID(N'[dbo].[BlogPost]', N'U') IS NOT NULL)
+BEGIN
+   DROP TABLE [dbo].[BlogPost];
+END   
+
+GO
+
+CREATE TABLE [dbo].[BlogPost]
+(
+	[Id] int identity,
+
+	[Title] varchar(256),
+
+	[Content] text
+);
+
+GO
+```
+
+[`C_BlogPost_Slug.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/C_BlogPost_Slug.sql) and [`PK_BlogPost_Id.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/PK_BlogPost_Id.sql)  have additional blobs to be rendered after the above due to the `ORDER` parameter. These 2 have the same value for `ORDER` because we didn't care about the relative order among themselves as long as they come after the blob for CREATE TABLE statement. In other words, the `ORDER` parameter value needs to be different only if you want a strict sequencial order; otherwise, it just goes by the order of which blob it scans first.
+
+Final result: [010_migration.sql](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql)
 
 
 
