@@ -1,17 +1,10 @@
 {
   "name": "code-formation",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "experimental template engine with embeddable DSL for meta-programming",
   "main": "./src/index.js",
   "files": [
-    "./src/error.js",    
-    "./src/eval-blobs.js",
-    "./src/eval-snippet-injections.js",
-    "./src/index.js",
-    "./src/options.js",        
-    "./src/scan-blobs.js",    
-    "./src/scan-snippets.js",    
-    "./src/write-output.js",
+    "src",
     "README.md",
     "LICENSE"
   ],
