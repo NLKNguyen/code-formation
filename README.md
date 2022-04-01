@@ -28,7 +28,7 @@
 
 # 💡 Overview and thoughts
 
-This is an experimental stage of a context-free code generator with a templalte meta-programming language that automates a set of common programming/writing tasks by using a template meta-programming langnuage embedded directly in your code (typically as source comments or out-of-source text files). 
+This is an experimental stage of a context-free code generator that automates a set of common programming/writing tasks by using a template meta-programming language which can be embedded directly in your code (typically as source comments or out-of-source text files). 
 
 The motivation behind this is to solve 5 categories of problems that I found myself often getting into in software engineering, and it stretches beyond the use cases of code writing. Only 1 category is  under  the focus of the current development.
 
