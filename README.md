@@ -122,9 +122,9 @@ The output file [`./examples/01_sql_migration_from_scripts/output/010_migration.
 
 **Explanation:**
 
-With code-formation language (CFL), we can put the instructions as comments in the SQL scripts themselves so that they don't affect the behavior of these individual scripts. This language is parsed by simply finding the markers to determine the applicable blocks and ignoring the rest.
+With code-formation language (CFL), we can put the instructions directly in the SQL scripts as comments so that they don't affect the behavior of these individual scripts. This language is parsed by simply finding the markers to determine the applicable blocks and ignoring the rest.
 
-For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/BlobPost.sql) we surround the CREATE TABLE statement with `!<` and `!>` block syntax to indicate a **blob block**; within it is EJS template code but we don't use any EJS specific feature here yet.
+For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/BlobPost.sql) we surround the CREATE TABLE statement with `!<` and `!>` block syntax to indicate a **blob block**; within it is EJS template code, but we don't use any EJS specific feature here yet.
 
 
 
