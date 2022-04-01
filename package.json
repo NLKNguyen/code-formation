@@ -1,17 +1,17 @@
 {
   "name": "code-formation",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "experimental template engine with embeddable DSL for meta-programming",
-  "main": "index.js",
+  "main": "./src/index.js",
   "files": [
-    "index.js",
-    "options.js",
-    "error.js",
-    "scan-blobs.js",
-    "eval-blobs.js",
-    "scan-snippets.js",
-    "eval-snippet-injections.js",
-    "write-output.js",
+    "./src/error.js",    
+    "./src/eval-blobs.js",
+    "./src/eval-snippet-injections.js",
+    "./src/index.js",
+    "./src/options.js",        
+    "./src/scan-blobs.js",    
+    "./src/scan-snippets.js",    
+    "./src/write-output.js",
     "README.md",
     "LICENSE"
   ],
@@ -21,7 +21,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": "./index.js",
+  "bin": "./src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NLKNguyen/code-formation.git"
