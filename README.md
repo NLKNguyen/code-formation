@@ -200,6 +200,7 @@ $>
 The result of the code we have seen so far is in the first part of the output file [010_migration.sql](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql)
 
 ```tsql
+
 -- Check if user-defined table exists in order to drop
 IF (OBJECT_ID(N'[dbo].[BlogPost]', N'U') IS NOT NULL)
 BEGIN
@@ -213,6 +214,8 @@ CREATE TABLE [dbo].[BlogPost]
 	[Id] int identity,
 
 	[Title] varchar(256),
+
+	[Slug] varchar(64),
 
 	[Content] text
 );
