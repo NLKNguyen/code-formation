@@ -79,12 +79,22 @@ If you want to install this globally, you can do so as well from the same direct
 
 ```sh
 npm link
+
+# check:
+# npm ls -g code-formation
 ```
+
 
 Now you can use it anywhere in your terminal:
 
 ```sh 
 code-formation --help
+```
+
+If you want to uninstall:
+
+```sh
+npm rm -g code-formation
 ```
 
 # 📝 Command Line Interface Usage
@@ -106,7 +116,7 @@ Code Formation lets you define chunks of text in many files and unifies them in 
 
 #### Example 1: make SQL migration scripts from standalone DDL files
 
-[`./examples/01_sql_migration_from_scripts/`](https://github.com/NLKNguyen/code-formation/tree/main/examples/01_sql_migration_from_scripts) shows a simplified example where developers work on the DDL scripts with an IDE, but in order to make migration scripts, they must manually combine those in a specific order into a single SQL script; plus, it might need additional supporting statements around or in-between those script content.
+[`./examples/01_sql_migration_from_scripts/input`](https://github.com/NLKNguyen/code-formation/tree/main/examples/01_sql_migration_from_scripts/input) shows a simplified example where developers work on the DDL scripts with an IDE, but in order to make migration scripts, they must manually combine those in a specific order into a single SQL script; plus, it might need additional supporting statements around or in-between those script content.
 
 **Problem:**
 1. Error prone and tedious by hand. Although some IDEs let you generate migration scripts from the local DB automatically, the DB support is usually very limited, and it usually rewrites your SQL code structure which makes it hard to later compare your DB server code with your original code in order to do schema diff reliably. 
@@ -159,7 +169,7 @@ Another thing to notice is the **snippet injection** syntax `$!:` that is follow
 
 The above will be rendered using the snippet template defined in `snippets.txt` file. The snippets will be scanned first in the processing pipeline, so it will be available at this point. 
 
-Here is a part of the **snippet definition block** that is injected above, enclosed by the block syntax `$<`, `$>`. The opening tag has the name of the snippet and optional default parameters, and the snippet content is EJS template in which the control block is enclosed by `<%` and `%>`, while the value reference is enclosed by `<%=` and `%>` (see [EJS](https://ejs.co/) for more features; also [lodash](https://lodash.com/docs/4.17.15) is available as `_` reference in the template control blocks; in the future, users can import any Node.js library to use here)
+Here is a part of the **snippet definition block** that is injected above, enclosed by the block syntax `$<`, `$>`. The opening tag has the name of the snippet and optional default parameters. The snippet content is EJS template code in which the control block is enclosed by `<%` and `%>`, while the value reference is enclosed by `<%=` and `%>` (see [EJS](https://ejs.co/) for more features; also [lodash](https://lodash.com/docs/4.17.15) is available as `_` variable reference; in the future, users can import any Node.js library to use here)
 
 ```
 $<:delete_object_if_exists table="" trigger="" procedure="" check_constraint="" 
