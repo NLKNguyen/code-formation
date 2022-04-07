@@ -13,6 +13,7 @@ module.exports = function (files, profile, log) {
     const local_entities = []
     let focused_entity
     let focused_entity_start_line = 0
+    let LINE_PREFIX = ""
     while (line_index < lines.length) {
       const line = lines[line_index]
       if (_.isUndefined(focused_entity)) {
@@ -39,6 +40,8 @@ module.exports = function (files, profile, log) {
             throw new Error(`${file}:${line_index + 1} invalid parameters`)
           }
 
+          
+
           const invalid_params = _.keys(params)
             .filter((key) => _.startsWith(key, "_"))
             .map((e) => `"${e}"`)
@@ -49,6 +52,9 @@ module.exports = function (files, profile, log) {
               `${file}:${line_index} local parameters of a snippet can't start with _ like ${invalid_params}`
             )
           }
+
+          LINE_PREFIX = _.get(params, ["LINE_PREFIX"], LINE_PREFIX)
+          
 
           const new_snippet = {
             kind: "snippet",
@@ -80,7 +86,7 @@ module.exports = function (files, profile, log) {
           line_index = focused_entity_start_line
           focused_entity = undefined
         } else {
-          focused_entity.template.push(line)
+          focused_entity.template.push(LINE_PREFIX + line)
         }
       }
       line_index += 1

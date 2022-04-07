@@ -9,6 +9,7 @@ const source_id = "eval_snippet_injections"
 
 module.exports = function (content, params, profile, log) {
   const LINE_FEED = _.get(params, ["LINE_FEED"])
+  let LINE_PREFIX = _.get(params, ["LINE_PREFIX"])
 
   const lines = content.split(/\r?\n/)
   let line_number = 0
@@ -23,10 +24,11 @@ module.exports = function (content, params, profile, log) {
     } else {
       const snippet_name = _.get(matched, "[1]", "").trim()
       const rest = _.get(matched, "[2]", "").trim()
-      let params = {}
+      
+      let injection_params = {}
       if (!_.isEmpty(rest)) {
         try {
-          params = parsePairs.default(rest)
+          injection_params = parsePairs.default(rest)
         } catch (e) {          
           throw new Error(
             `[${source_id}] encountered invalid params on line ${line_number} of the blob:\n${line}`
@@ -34,18 +36,26 @@ module.exports = function (content, params, profile, log) {
         }
       }
 
+      LINE_PREFIX = _.get(injection_params, ["LINE_PREFIX"], LINE_PREFIX)
+      // log.info(colorize(rest))
+      // log.info(colorize(injection_params))
+      // log.info(`LINE_PREFIX "${LINE_PREFIX}"`)
+
       const snippet = _.get(profile, ["snippets", snippet_name])
       if (_.isUndefined(snippet)) {
         throw new Error(`[${source_id}] cannot find the snippet ${snippet_name}`)
       }
 
-      merged_params = _.merge({}, snippet.params, params) 
+      merged_params = _.merge({}, snippet.params, injection_params) 
     //   log.info('merged_params', colorize(snippet.params), colorize(params), colorize(merged_params))
 
-      const template_str = snippet.template.join(LINE_FEED)
-      const compiled_template = _.template(template_str)
-      const rendered = compiled_template(merged_params)
+      const template_str = snippet.template.map(e => LINE_PREFIX + e).join(LINE_FEED)
 
+      // log.info(template_str)
+      const compiled_template = _.template(template_str, { interpolate: null })
+      // log.info(compiled_template)
+      const rendered = compiled_template(merged_params)
+      // log.info(rendered)
       result.push(rendered)
     }
     line_number += 1

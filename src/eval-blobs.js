@@ -39,7 +39,7 @@ module.exports = function (files, profile, log) {
 
     const LINE_PREFIX = _.get(
       params,
-      ["LINE_FEED"],
+      ["LINE_PREFIX"],
       _.get(profile, "LINE_PREFIX")
     )
 
@@ -87,6 +87,7 @@ module.exports = function (files, profile, log) {
         profile,
         log
       )
+      
 
       const lines = enriched.split(/\r?\n/)
       let formatted_lines = []
