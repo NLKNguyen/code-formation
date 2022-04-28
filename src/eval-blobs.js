@@ -27,8 +27,7 @@ module.exports = function (files, profile, log) {
     let OUTSLOT = ""
     if (outparts.length > 1) {
       OUTSLOT = outparts[1]
-    }
-
+    }    
 
     const ORDER = _.get(params, ["ORDER"], "")
     const LINE_FEED = _.get(
@@ -62,8 +61,10 @@ module.exports = function (files, profile, log) {
     const local_params = {} // _.pickBy(params, (v, k) => k[0] == k[0].toLowerCase() )
 
     try {
-      const compiled = _.template(template_str)
+      // _.templateSettings.interpolate = /<%=([\s\S]+?)%>/g;
+      const compiled = _.template(template_str , { interpolate: /<%=([\s\S]+?)%>/g }) //
       const variables = {
+        ...profile.variables,
         OUTDIR,
         OUT,                
         OUTFILE,
@@ -79,7 +80,7 @@ module.exports = function (files, profile, log) {
       //   })
       // )
       const rendered = compiled(variables)
-      // log.verbose(rendered)
+      // log.info(rendered)
           
       const enriched = eval_snippet_injections(
         rendered,

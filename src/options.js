@@ -32,8 +32,15 @@ const scan = {
   description: "glob file patterns to be scanned, separated by semi-colon ;",
 }
 
+const define = {
+  pattern: "-d, --define <variable assignments>",
+  description: "define variables",
+}
+
+
 module.exports = {
   read,
   scan,
   outdir,
+  define
 }

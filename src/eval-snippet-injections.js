@@ -22,14 +22,14 @@ module.exports = function (content, params, profile, log) {
     if (!matched) {
       result.push(line)
     } else {
-      const snippet_name = _.get(matched, "[1]", "").trim()
+      const command = _.get(matched, "[1]", "").trim()
       const rest = _.get(matched, "[2]", "").trim()
-      
+
       let injection_params = {}
       if (!_.isEmpty(rest)) {
         try {
           injection_params = parsePairs.default(rest)
-        } catch (e) {          
+        } catch (e) {
           throw new Error(
             `[${source_id}] encountered invalid params on line ${line_number} of the blob:\n${line}`
           )
@@ -40,16 +40,49 @@ module.exports = function (content, params, profile, log) {
       // log.info(colorize(rest))
       // log.info(colorize(injection_params))
       // log.info(`LINE_PREFIX "${LINE_PREFIX}"`)
+      let snippet
+      if (command === "INSERT") {
+        const FILE = _.get(injection_params, ["FILE"])
+        if (_.isUndefined(FILE)) {
+          throw new Error(`FILE param is missing for INSERT command`)
+        }
 
-      const snippet = _.get(profile, ["snippets", snippet_name])
-      if (_.isUndefined(snippet)) {
-        throw new Error(`[${source_id}] cannot find the snippet ${snippet_name}`)
+        log.info(`read file ${FILE}`)
+
+        const template = fs.readFileSync(FILE, "utf8")
+        snippet = {
+          kind: "snippet",
+          params,
+          template: template.split(LINE_FEED),
+        }
+      } else {
+        // const snippet_name = _.get(matched, "[1]", "").trim()
+        const snippet_name = command
+
+        snippet = _.get(profile, ["snippets", snippet_name])
+        if (_.isUndefined(snippet)) {
+          throw new Error(
+            `[${source_id}] cannot find the snippet ${snippet_name}`
+          )
+        }
       }
+      // log.info(snippet)
 
-      merged_params = _.merge({}, snippet.params, injection_params) 
-    //   log.info('merged_params', colorize(snippet.params), colorize(params), colorize(merged_params))
+      const merged_params = _.merge(
+        { ...profile.variables },
+        snippet.params,
+        injection_params
+      )
+      // log.info(
+      //   "merged_params",
+      //   colorize(snippet.params),
+      //   colorize(params),
+      //   colorize(merged_params)
+      // )
 
-      const template_str = snippet.template.map(e => LINE_PREFIX + e).join(LINE_FEED)
+      const template_str = snippet.template
+        .map((e) => LINE_PREFIX + e)
+        .join(LINE_FEED)
 
       // log.info(template_str)
       const compiled_template = _.template(template_str, { interpolate: null })

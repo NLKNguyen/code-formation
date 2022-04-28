@@ -46,7 +46,11 @@ const log = logger
 // }
 
 try {
-  let { outdir, scan } = Options.read([Options.outdir, Options.scan])
+  let { outdir, scan, define } = Options.read([
+    Options.outdir,
+    Options.scan,
+    Options.define,
+  ])
 
   if (!outdir) {
     throw new Error("Missing input argument --outdir")
@@ -57,20 +61,36 @@ try {
   }
   scan = scan.split(";").map((e) => e.trim())
 
+  if (!_.isUndefined(define)) {
+    try {
+      define = parsePairs.default(define)
+    } catch (e) {
+      throw new Error("Invalid format --define")
+    }
+  }
+
   let sourceFiles = glob.sync(scan, { nodir: true })
-  log.info(`scanning files: ${colorize(sourceFiles, {pretty: true})}`)
+  log.info(`scanning files: ${colorize(sourceFiles, { pretty: true })}`)
 
   const profile = {
-    marker_prefix: "",    
+    marker_prefix: "",
     variables: {},
     snippets: {},
     exports: [],
     OUTDIR: outdir,
     LINE_FEED: "\n",
     LINE_PREFIX: "",
-    SECTION_SEPARATOR: "\n"
+    SECTION_SEPARATOR: "\n",
   }
 
+  if (!_.isUndefined(define)) {
+    profile.variables = define
+  }
+  // log.info(
+  //   colorize(profile, {
+  //     pretty: true,
+  //   })
+  // )
   // scan_variables(sourceFiles, profile)
 
   scan_snippets(sourceFiles, profile, log)
@@ -87,11 +107,11 @@ try {
 
   write_output(sourceFiles, profile, log)
 
-  log.verbose(
-    colorize(profile, {
-      pretty: true,
-    })
-  )
+  // log.verbose(
+  //   colorize(profile, {
+  //     pretty: true,
+  //   })
+  // )
 
   // scan_captures(profile)
   // eval_captures(profile)
