@@ -4,6 +4,7 @@ const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const error = require("./error.js")
+const common = require("./common.js")
 const source_id = "scan-blobs"
 
 module.exports = function (files, profile, log) {
@@ -16,13 +17,24 @@ module.exports = function (files, profile, log) {
     let focused_entity_start_line = 0
     while (line_number < lines.length) {
       try {
-        const line = lines[line_number]
+        let line = lines[line_number]
         if (_.isUndefined(focused_entity)) {
           // const openTag = line.match(/(\s|\w+|@)<&:([A-Za-z0-9_-]+)(.*)/)
           // const openTag = line.match(/(\s|\w+|@)<!(.*)/)
-          const regex = new RegExp(`${profile.marker_prefix}!(\\w*)<:(.*)`)
+          let openTag
+          let doneInterpolation = false
+          while (true) {
+            const regex = new RegExp(`${profile.marker_prefix}!(\\w*)<:(.*)`)
+            openTag = regex.exec(line)
 
-          const openTag = line.match(regex)
+            if (!openTag || doneInterpolation) {
+              break
+            } else {
+              line = common.renderTemplate(line, profile.variables)
+              doneInterpolation = true
+            }
+          }
+          // const openTag = line.match(regex)
           // const openTag = line.match(/!(\w*)<:(.*)/)
           if (openTag) {
             const tag = _.get(openTag, "[1]", "").trim()
@@ -37,9 +49,10 @@ module.exports = function (files, profile, log) {
             }
 
             const ORDER = _.get(params, ["ORDER"], "")
-            
+
             const new_blob = {
               task: `${file}#${ORDER}`,
+              matched: openTag,
               kind: "blob",
               tag,
               params,
@@ -86,7 +99,9 @@ module.exports = function (files, profile, log) {
         }
         line_number += 1
       } catch (e) {
-        throw new Error(`[${source_id}] failed to process ${error.message(e, log)}`)
+        throw new Error(
+          `[${source_id}] failed to process ${error.message(e, log)}`
+        )
       }
     }
   })

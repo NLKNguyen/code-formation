@@ -4,9 +4,9 @@ const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
-const error = require('./error.js')
+const error = require("./error.js")
 const eval_snippet_injections = require("./eval-snippet-injections")
-
+const common = require("./common.js")
 const source_id = "eval-blobs"
 
 module.exports = function (files, profile, log) {
@@ -16,32 +16,38 @@ module.exports = function (files, profile, log) {
   for (let component of _.get(profile, "tasks", [])) {
     // TODO: caller should specify the task and this only apply to that
 
-    const { src, start, end, params }  = component
-    
+    const { matched, src, start, end, params } = component
+
     const OUT = _.get(params, ["OUT"])
     if (!OUT) {
-      throw new Error(`[${source_id}] Missing OUT parameter on ${src}:${start + 1}`)
+      throw new Error(
+        `[${source_id}] Missing OUT parameter on ${src}:${start + 1}`
+      )
     }
-    const outparts =  OUT.split(":")
+    const outparts = OUT.split(":")
     let OUTFILE = outparts[0]
     let OUTSLOT = ""
     if (outparts.length > 1) {
       OUTSLOT = outparts[1]
-    }    
+    }
 
     const ORDER = _.get(params, ["ORDER"], "")
-    const LINE_FEED = _.get(
-      params,
-      ["LINE_FEED"],
-      _.get(profile, "LINE_FEED")
-    )
+    const LINE_FEED = _.get(params, ["LINE_FEED"], _.get(profile, "LINE_FEED"))
 
-    const LINE_PREFIX = _.get(
+    let LINE_PREFIX = _.get(
       params,
       ["LINE_PREFIX"],
       _.get(profile, "LINE_PREFIX")
     )
 
+
+    LINE_PREFIX = common.makePrefixString(
+      LINE_PREFIX,
+      matched.input,
+      matched.index
+    )
+
+    // throw new Error()
     let SECTION_SEPARATOR = _.get(params, ["SECTION_SEPARATOR"])
     if (!_.isUndefined(SECTION_SEPARATOR)) {
       SECTION_SEPARATOR = SECTION_SEPARATOR.replace(/\\n/g, "\n").replace(
@@ -62,11 +68,13 @@ module.exports = function (files, profile, log) {
 
     try {
       // _.templateSettings.interpolate = /<%=([\s\S]+?)%>/g;
-      const compiled = _.template(template_str , { interpolate: /<%=([\s\S]+?)%>/g }) //
+      const compiled = _.template(template_str, {
+        interpolate: /<%=([\s\S]+?)%>/g,
+      }) //
       const variables = {
         ...profile.variables,
         OUTDIR,
-        OUT,                
+        OUT,
         OUTFILE,
         OUTSLOT,
         ORDER,
@@ -74,26 +82,24 @@ module.exports = function (files, profile, log) {
         LINE_PREFIX,
         ...local_params,
       }
-      // console.log(
-      //   colorize(variables, {
-      //     pretty: true,
-      //   })
-      // )
+
+      // log.info("variables")
+      // log.info(colorize(variables, { pretty: true}))
+
       const rendered = compiled(variables)
       // log.info(rendered)
-          
+
       const enriched = eval_snippet_injections(
         rendered,
         variables,
         profile,
         log
       )
-      
 
       const lines = enriched.split(/\r?\n/)
       let formatted_lines = []
       let continuous_empty_lines = 0
-      for(let line of lines) {
+      for (let line of lines) {
         if (_.isEmpty(line.trim())) {
           continuous_empty_lines += 1
           if (continuous_empty_lines > 1) {
@@ -106,7 +112,7 @@ module.exports = function (files, profile, log) {
         formatted_lines.push(line)
       }
 
-      formatted_lines = formatted_lines.map(e => LINE_PREFIX + e)
+      formatted_lines = formatted_lines.map((e) => LINE_PREFIX + e)
       // for(let i = 0; i < formatted_lines.length; i += 1) {
       //   formatted_lines[i] = LINE_PREFIX + formatted_lines[i]
       // }
@@ -150,10 +156,10 @@ module.exports = function (files, profile, log) {
       // console.log(OUTDIR, OUTFILE)
       // fs.writeFileSync(path.join(OUTDIR, OUTFILE), rendered)
     } catch (e) {
-           
-
       throw new Error(
-        `[${source_id}] Failed template compilation ${src}:${start + 1}-${end + 1}: ${error.message(e,log)}`
+        `[${source_id}] Failed template compilation ${src}:${start + 1}-${
+          end + 1
+        }: ${error.message(e, log)}`
       )
     }
   }

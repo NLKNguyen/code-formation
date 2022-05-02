@@ -1,9 +1,10 @@
-const path = require("path")
+// const path = require("path")
 const fs = require("fs")
 const _ = require("lodash")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
 const error = require("./error")
+const common = require('./common')
 
 module.exports = function (files, profile, log) {
   // log.info(chalk.cyanBright("write-output"))
@@ -39,8 +40,10 @@ module.exports = function (files, profile, log) {
 
     // log.info(data)
     try {
+            
       log.info(`writing output to ${chalk.cyanBright(output_path)}`)
-      fs.writeFileSync(output_path, data)
+      common.writeFileSyncRecursive(output_path, data, 'utf8')
+      // fs.writeFileSync(output_path, data)
     } catch (e) {
       throw new Error(error.message(e, log))
     }

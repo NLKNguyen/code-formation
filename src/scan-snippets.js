@@ -13,7 +13,7 @@ module.exports = function (files, profile, log) {
     const local_entities = []
     let focused_entity
     let focused_entity_start_line = 0
-    let LINE_PREFIX = ""
+    let LINE_PREFIX = 0
     while (line_index < lines.length) {
       const line = lines[line_index]
       if (_.isUndefined(focused_entity)) {
@@ -22,6 +22,8 @@ module.exports = function (files, profile, log) {
         )
         // const openTag = line.match(/\$(\w*)<:([A-Za-z0-9_]+)(.*)/);
         const openTag = line.match(regex)
+        // TODO: use .exec and apply variable interpolation in the tag as well
+
         if (openTag) {
           const tag = _.get(openTag, "[1]", "").trim()
           const snippetId = _.get(openTag, "[2]", "").trim()
@@ -29,7 +31,7 @@ module.exports = function (files, profile, log) {
           rest = rest.replace(
             /([A-Za-z0-9_])+\s*=\s*(_[A-Za-z0-9_]+)/,
             (_full, variable, value) => {
-              return `${variable}="${value}"` // TODO: look up global variable
+              return `${variable}="${value}"` // TODO: look up global variable. No, the variable interpolation is better
             }
           )
           // console.log(rest)
@@ -65,6 +67,7 @@ module.exports = function (files, profile, log) {
             end: line_index,
             template: [],
           }
+          
           _.set(profile, ["snippets", snippetId], new_snippet)
 
           // console.log(openTag)

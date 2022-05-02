@@ -4,12 +4,14 @@ const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
+const common = require("./common.js")
 
 const source_id = "eval_snippet_injections"
 
 module.exports = function (content, params, profile, log) {
-  const LINE_FEED = _.get(params, ["LINE_FEED"])
+  let LINE_FEED = _.get(params, ["LINE_FEED"])
   let LINE_PREFIX = _.get(params, ["LINE_PREFIX"])
+  // console.log(params)
 
   const lines = content.split(/\r?\n/)
   let line_number = 0
@@ -17,11 +19,15 @@ module.exports = function (content, params, profile, log) {
   while (line_number < lines.length) {
     const line = lines[line_number]
     const regex = new RegExp(`${profile.marker_prefix}\\$!:(\\w+)(\\s.*)?`)
-
-    const matched = line.match(regex)
+    const matched = regex.exec(line)
+    // const matched = line.match(regex)
     if (!matched) {
       result.push(line)
     } else {
+      // console.dir(matched)
+      // log.info(`matched at index: ${matched.index}`)
+      // log.info(`prefix: "${line.substring(0, matched.index)}"`)
+      // throw new Error(matched)
       const command = _.get(matched, "[1]", "").trim()
       const rest = _.get(matched, "[2]", "").trim()
 
@@ -29,6 +35,8 @@ module.exports = function (content, params, profile, log) {
       if (!_.isEmpty(rest)) {
         try {
           injection_params = parsePairs.default(rest)
+          // log.info('injection_params')
+          // log.info(colorize(injection_params))
         } catch (e) {
           throw new Error(
             `[${source_id}] encountered invalid params on line ${line_number} of the blob:\n${line}`
@@ -36,7 +44,18 @@ module.exports = function (content, params, profile, log) {
         }
       }
 
+      LINE_FEED = _.get(injection_params, ["LINE_FEED"], LINE_FEED)
       LINE_PREFIX = _.get(injection_params, ["LINE_PREFIX"], LINE_PREFIX)
+
+      LINE_PREFIX = common.makePrefixString(
+        LINE_PREFIX,
+        matched.input,
+        matched.index
+      )
+
+      injection_params.LINE_FEED = LINE_FEED
+      injection_params.LINE_PREFIX = LINE_PREFIX
+
       // log.info(colorize(rest))
       // log.info(colorize(injection_params))
       // log.info(`LINE_PREFIX "${LINE_PREFIX}"`)
@@ -48,11 +67,14 @@ module.exports = function (content, params, profile, log) {
         }
 
         log.info(`read file ${FILE}`)
+        // log.info(colorize(injection_params))
 
         const template = fs.readFileSync(FILE, "utf8")
+        // TODO: make reusable function for making snippet
         snippet = {
           kind: "snippet",
-          params,
+          matched,
+          injection_params,
           template: template.split(LINE_FEED),
         }
       } else {
@@ -73,12 +95,10 @@ module.exports = function (content, params, profile, log) {
         snippet.params,
         injection_params
       )
-      // log.info(
-      //   "merged_params",
-      //   colorize(snippet.params),
-      //   colorize(params),
-      //   colorize(merged_params)
-      // )
+      // log.info("merged_params")
+      // log.info(colorize(snippet.params))
+      // log.info(colorize(params))
+      // log.info(colorize(merged_params))
 
       const template_str = snippet.template
         .map((e) => LINE_PREFIX + e)

@@ -50,6 +50,7 @@ try {
     Options.outdir,
     Options.scan,
     Options.define,
+    // TODO: --definitions <file> for dotenv file
   ])
 
   if (!outdir) {
@@ -59,6 +60,7 @@ try {
   if (!scan) {
     throw new Error("Missing input argument --scan")
   }
+  // TODO: maybe default to current dir
   scan = scan.split(";").map((e) => e.trim())
 
   if (!_.isUndefined(define)) {
@@ -79,7 +81,7 @@ try {
     exports: [],
     OUTDIR: outdir,
     LINE_FEED: "\n",
-    LINE_PREFIX: "",
+    LINE_PREFIX: "0", // can be literal string or number, which is offset indentation from the tag marker
     SECTION_SEPARATOR: "\n",
   }
 
