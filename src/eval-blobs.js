@@ -40,7 +40,6 @@ module.exports = function (files, profile, log) {
       _.get(profile, "LINE_PREFIX")
     )
 
-
     LINE_PREFIX = common.makePrefixString(
       LINE_PREFIX,
       matched.input,

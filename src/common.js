@@ -68,8 +68,13 @@ function writeFileSyncRecursive(filename, content, charset) {
   fs.writeFileSync(root + filepath, content, charset)
 }
 
+function isOnlyOneDefined(arr) {
+  return  _.sum(arr, e => _.isUndefined(e) ? 0 : 1) === 1
+}
+
 module.exports = {
   makePrefixString,
   renderTemplate,
   writeFileSyncRecursive,
+  isOnlyOneDefined
 }
