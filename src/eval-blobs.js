@@ -25,6 +25,7 @@ module.exports = function (files, profile, log) {
       )
     }
     const outparts = OUT.split(":")
+    
     let OUTFILE = outparts[0]
     let OUTSLOT = ""
     if (outparts.length > 1) {
@@ -79,6 +80,7 @@ module.exports = function (files, profile, log) {
         ORDER,
         LINE_FEED,
         LINE_PREFIX,
+        CURRENT_DIR: path.dirname(src),
         ...local_params,
       }
 
@@ -123,7 +125,12 @@ module.exports = function (files, profile, log) {
       //   _.set(profile, ['content', ORDER], [])
       // }
 
-      const blob_path = path.join(OUTDIR, OUTFILE)
+      let blob_path
+      if (OUTFILE.startsWith("@")) {
+        blob_path = OUTFILE.substring(1)
+      } else {
+        blob_path = path.join(OUTDIR, OUTFILE)
+      }
 
       const outpath = ["output", blob_path]
 

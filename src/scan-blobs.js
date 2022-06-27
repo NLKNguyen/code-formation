@@ -30,7 +30,10 @@ module.exports = function (files, profile, log) {
             if (!openTag || doneInterpolation) {
               break
             } else {
-              line = common.renderTemplate(line, profile.variables)
+              line = common.renderTemplate(line, {
+                ...profile.variables,
+                CURRENT_DIR: path.dirname(file),
+              })
               doneInterpolation = true
             }
           }
