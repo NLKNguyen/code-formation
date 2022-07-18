@@ -5,6 +5,7 @@ const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
 const common = require("./common.js")
+const { DateTime } = require("luxon");
 
 const source_id = "eval_snippet_injections"
 
@@ -71,9 +72,10 @@ function eval_snippet_injections(content, params, profile, log) {
       if (command === "INSERT") {
         const FILE = _.get(injection_params, ["FILE"])
         const CONTENT = _.get(injection_params, ["CONTENT"])
-        if (common.isOnlyOneDefined([FILE, CONTENT])) {
+        const CURRENT_TIME = _.get(injection_params, ["CURRENT_TIME"])
+        if (common.isOnlyOneDefined([FILE, CONTENT, CURRENT_TIME])) {
           throw new Error(
-            `INSERT command required either FILE or CONTENT parameter`
+            `INSERT command required either FILE, CONTENT, or CURRENT_TIME parameter`
           )
         }
 
@@ -91,6 +93,12 @@ function eval_snippet_injections(content, params, profile, log) {
         if (!_.isUndefined(CONTENT)) {
           template = CONTENT.split(LINE_FEED)
         }
+
+        if (!_.isUndefined(CURRENT_TIME)) {
+          // console.log(CURRENT_TIME)
+          template =  [DateTime.now().toFormat(CURRENT_TIME)]
+          // console.log(template)
+        }        
 
         snippet = {
           kind: "snippet",
@@ -125,7 +133,7 @@ function eval_snippet_injections(content, params, profile, log) {
         .map((e) => LINE_PREFIX + e)
         .join(LINE_FEED)
 
-      // // log.info(template_str)
+      // log.info(template_str)
       // const compiled_template = _.template(template_str, { interpolate: null })
       // // log.info(compiled_template)
       // const rendered = compiled_template(merged_params)
@@ -133,6 +141,8 @@ function eval_snippet_injections(content, params, profile, log) {
 
       const rendered = common.renderTemplate(template_str, merged_params)
       result.push(rendered)
+      // log.info('here')
+      // log.info(rendered)
     }
     line_number += 1
   }

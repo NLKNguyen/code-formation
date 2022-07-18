@@ -106,6 +106,44 @@ npm rm -g code-formation
 
 `--outdir`: base output path for the output files, if any; some use cases only affect the input files and don't generate output files.
 
+
+# How To Use
+
+This tool scan text files line by line to detect the instruction markers. The instruction can be anywhere on the line, and the content body, if applicable, is between the instruction lines. 
+
+## Instruction References
+
+### Blob
+
+Blob is a block of text to be written out to a file. The open marker `!<:` and close marker `!>` must be on different lines. 
+
+```
+!<:OUT="destination.txt"
+content body
+!>
+```
+
+The close marker is optional if your intention is to include all the lines from the open marker to the end of file. Between the exclamation mark `!` and the angle bracket you can have an optional label, e.g. `!abc<:` `!abc>`, that sometimes is necessary if you have other close marker that is not intended to pair with the open marker.
+
+**Parameters**
+
+`OUT`: specify the output file name. By default it uses relative path from the `--outdir` CLI argument. You can also specify alternative file paths via built-in variables: `CONTEXT_DIR` or `CURRENT_FILE`. 
+
++ `<%= CONTEXT_DIR %>` evaluates to the path of the working directory that you run `code-formation` from. E.g. `!<:OUT="<%= CONTEXT_DIR %>/destination.txt"` 
+
++ `<%= CURRENT_FILE %>` evaluates to the path of the file where the instruction is written. E.g. `!<:OUT="<%= CURRENT_FILE %>/destination.txt"` 
+
+`LINE_PREFIX`: specify the prefix for each line. By default it is `LINE_PREFIX=0` which is the same prefix that appears before the open marker. Specifying a negative number such as `-2` means it uses less than 2 character of the aforementioned prefix. It's common to use `LINE_PREFIX=""`. 
+
+### Anchor
+
+TODO
+
+### Snippet
+
+TODO
+
+
 # ⭐ Understand through examples
 
 It's probably best to explain at this early stage by walking through examples that are included in [this repository](https://github.com/NLKNguyen/code-formation/tree/main/examples). Below are examples on how this tool can help in 5 categories. Even though these are concrete examples derived from real-world usage of this tool, it is not limited to any referenced language or technology because the tool just deals with plain text, which can sometimes be of certain code language.
@@ -238,7 +276,6 @@ Final result: [010_migration.sql](https://github.com/NLKNguyen/code-formation/bl
 ### Category 4: TODO
 
 ### Category 5: TODO
-
 
 
 # 👋 Author

@@ -32,7 +32,8 @@ module.exports = function (files, profile, log) {
             } else {
               line = common.renderTemplate(line, {
                 ...profile.variables,
-                CURRENT_DIR: path.dirname(file),
+                CURRENT_DIR: `@${path.dirname(file)}`,
+                CONTEXT_DIR: `@.`,
               })
               doneInterpolation = true
             }
@@ -51,10 +52,12 @@ module.exports = function (files, profile, log) {
               throw new Error(error.message(e, log))
             }
 
+            const ANCHOR = _.get(params, ["ANCHOR"], "")
             const ORDER = _.get(params, ["ORDER"], "")
 
             const new_blob = {
-              task: `${file}#${ORDER}`,
+              task: `${file}#${ANCHOR}#${ORDER}`,
+              // anchor: ANCHOR,
               matched: openTag,
               kind: "blob",
               tag,

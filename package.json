@@ -1,6 +1,6 @@
 {
   "name": "code-formation",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "experimental template engine with embeddable DSL for meta-programming",
   "main": "./src/index.js",
   "files": [
@@ -32,6 +32,7 @@
     "glob-all": "^3.3.0",
     "json-colorizer": "^2.2.2",
     "lodash": "^4.17.21",
+    "luxon": "^3.0.1",
     "parse-pairs": "^1.1.0",
     "winston": "^3.6.0"
   },

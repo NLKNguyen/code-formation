@@ -42,7 +42,7 @@ module.exports = function (files, profile, log) {
           } catch (e) {
             throw new Error(`${file}:${line_index + 1} invalid parameters`)
           }
-
+          // console.log(params)
           const invalid_params = _.keys(params)
             .filter((key) => _.startsWith(key, "_"))
             .map((e) => `"${e}"`)

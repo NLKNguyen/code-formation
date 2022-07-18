@@ -25,6 +25,7 @@ function read(opts) {
 const outdir = {
   pattern: "-o, --outdir <directory>",
   description: "output directory",
+  default: "."
 }
 
 const scan = {

@@ -13,6 +13,8 @@ CREATE TABLE [dbo].[BlogPost]
 
 	[Title] varchar(256),
 
+	[Slug] varchar(64),
+
 	[Content] text
 );
 

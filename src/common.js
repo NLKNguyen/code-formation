@@ -72,9 +72,45 @@ function isOnlyOneDefined(arr) {
   return  _.sum(arr, e => _.isUndefined(e) ? 0 : 1) === 1
 }
 
+function hasTemplateInstruction(profile, line) {  
+  const snippetOpenRegex = new RegExp(
+    `${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
+  )
+  
+  if (snippetOpenRegex.exec(line)) {
+    return true
+  }
+
+  const snippetCloseRegex = new RegExp(
+    `${profile.marker_prefix}\\$(\\w*)>`
+  )
+  if (snippetCloseRegex.exec(line)) {
+    return true
+  }
+
+  const blobOpenRegex = new RegExp(
+    `${profile.marker_prefix}!(\\w*)<:(.*)`
+  )
+  
+  if (blobOpenRegex.exec(line)) {
+    return true
+  }
+
+  const blobCloseRegex = new RegExp(
+    `${profile.marker_prefix}!(\\w*)>`
+  )
+  
+  if (blobCloseRegex.exec(line)) {
+    return true
+  }
+
+  return false
+}
+
 module.exports = {
   makePrefixString,
   renderTemplate,
   writeFileSyncRecursive,
-  isOnlyOneDefined
+  isOnlyOneDefined,
+  hasTemplateInstruction
 }

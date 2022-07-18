@@ -32,6 +32,7 @@ module.exports = function (files, profile, log) {
       OUTSLOT = outparts[1]
     }
 
+    const ANCHOR = _.get(params, ["ANCHOR"], "")
     const ORDER = _.get(params, ["ORDER"], "")
     const LINE_FEED = _.get(params, ["LINE_FEED"], _.get(profile, "LINE_FEED"))
 
@@ -80,7 +81,8 @@ module.exports = function (files, profile, log) {
         ORDER,
         LINE_FEED,
         LINE_PREFIX,
-        CURRENT_DIR: path.dirname(src),
+        CURRENT_DIR: `@${path.dirname(src)}`,
+        CONTEXT_DIR: `@.`,
         ...local_params,
       }
 
@@ -101,15 +103,17 @@ module.exports = function (files, profile, log) {
       let formatted_lines = []
       let continuous_empty_lines = 0
       for (let line of lines) {
+        if (common.hasTemplateInstruction(profile, line)) {
+          line = ''
+        }
         if (_.isEmpty(line.trim())) {
           continuous_empty_lines += 1
           if (continuous_empty_lines > 1) {
             continue
           }
-        } else {
+        } else {          
           continuous_empty_lines = 0
         }
-
         formatted_lines.push(line)
       }
 
@@ -118,7 +122,7 @@ module.exports = function (files, profile, log) {
       //   formatted_lines[i] = LINE_PREFIX + formatted_lines[i]
       // }
 
-      const formatted_text = formatted_lines.join(LINE_FEED)
+      const formatted_text = formatted_lines.join(LINE_FEED)  + LINE_FEED
       log.verbose(formatted_text)
 
       // if (!_.has(profile, ['content', ORDER])) {
@@ -132,15 +136,21 @@ module.exports = function (files, profile, log) {
         blob_path = path.join(OUTDIR, OUTFILE)
       }
 
-      const outpath = ["output", blob_path]
+      blob_path = path.resolve(blob_path)
+      // console.log(blob_path)
+
+      // const outpath = ["output", blob_path]
+
+      const outpath = ["output", blob_path, `#${ANCHOR}#${ORDER}`]
 
       // _.set(profile, [...outpath, 'params'], {
       //   SECTION_SEPARATOR
       // })
       const destination = _.get(
         profile,
-        [...outpath, `#${_.get(params, ["ORDER"])}`],
+        outpath,
         {
+          anchor: ANCHOR,
           state: {},
           items: [],
         }
@@ -150,10 +160,10 @@ module.exports = function (files, profile, log) {
         options: {
           LINE_FEED,
           SECTION_SEPARATOR,
-        },
+        }        
         // separator: SECTION_SEPARATOR,
       })
-      _.set(profile, [...outpath, `#${_.get(params, ["ORDER"])}`], destination)
+      _.set(profile, outpath, destination)
       // console.log(destination)
 
       // _.set(profile, ['content', 'a'], output)

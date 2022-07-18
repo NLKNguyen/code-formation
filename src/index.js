@@ -21,6 +21,7 @@ const winston = require("winston")
 
 const logger = winston.createLogger({
   level: "info",
+  // level: "info",
   format: winston.format.json(),
   // defaultMeta: { service: 'user-service' },
   transports: [
@@ -53,9 +54,9 @@ try {
     // TODO: --definitions <file> for dotenv file
   ])
 
-  if (!outdir) {
-    throw new Error("Missing input argument --outdir")
-  }
+  // if (!outdir) {
+  //   throw new Error("Missing input argument --outdir")
+  // }
 
   if (!scan) {
     throw new Error("Missing input argument --scan")

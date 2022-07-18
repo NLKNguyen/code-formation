@@ -4,7 +4,7 @@ const _ = require("lodash")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
 const error = require("./error")
-const common = require('./common')
+const common = require("./common")
 
 module.exports = function (files, profile, log) {
   // log.info(chalk.cyanBright("write-output"))
@@ -14,18 +14,25 @@ module.exports = function (files, profile, log) {
 
   for (let output_path of fileslots) {
     const package = output[output_path]
+
+    // console.dir(package)
     const orders = _.keys(package).sort()
 
     let data = ""
+    // let data = []
+    let target_anchor = ""
     let last_separator
 
     for (let order of orders) {
-      const { state, items } = package[order]
+      let { anchor, state, items } = package[order]
+      // console.dir(package[order])
+      target_anchor = anchor
       // items = _.get(package[order], "items")
       // last_separator = _.get(package[order], ["state","options", "SECTION_SEPARATOR"], "")
       last_separator = _.get(state, ["options", "SECTION_SEPARATOR"], "")
       for (let item of items) {
         data += last_separator
+        // data.push(last_separator)
         const content = item["content"]
         const separator = _.get(item, ["options", "SECTION_SEPARATOR"])
         if (!_.isUndefined(separator)) {
@@ -35,17 +42,73 @@ module.exports = function (files, profile, log) {
           // _.set(package[order], ["state", "options", "SECTION_SEPARATOR"], separator)
         }
         data += content
+        // data.push(content)
       }
     }
 
     // log.info(data)
-    try {
-            
-      log.info(`writing output to ${chalk.cyanBright(output_path)}`)
-      common.writeFileSyncRecursive(output_path, data, 'utf8')
-      // fs.writeFileSync(output_path, data)
-    } catch (e) {
-      throw new Error(error.message(e, log))
+    if (target_anchor) {
+      try {
+        log.info(
+          `writing output to '${target_anchor}' anchor in ${chalk.cyanBright(output_path)}`
+        )
+        const output = []
+        let focused_entity
+        const content = fs.readFileSync(output_path, "utf8").trim()
+        const lines = content.split(/\r?\n/)        
+        const openTagRegex = new RegExp(
+          `${profile.marker_prefix}@(\\w*)<:([A-Za-z0-9_]+)`
+        )
+        let line_index = 0
+        while (line_index < lines.length) {
+          let line = lines[line_index]
+
+          if (!focused_entity) {
+            output.push(line)
+
+            const openTag = openTagRegex.exec(line)
+
+            if (openTag) {
+              const tag = _.get(openTag, "[1]", "").trim()
+              const anchor = _.get(openTag, "[2]", "").trim()
+
+              if (anchor === target_anchor) {
+                focused_entity = {
+                  tag,
+                  anchor,
+                }
+                // console.log(data)
+                output.push(data.trimEnd())
+              }
+            }
+          } else {
+            const closeTagRegex = new RegExp(
+              `${profile.marker_prefix}@${focused_entity.tag}>`
+            )
+            const closeTag = closeTagRegex.exec(line)
+            if (closeTag) {
+              output.push(line)
+              focused_entity = undefined
+            } 
+          }
+          line_index += 1
+        }
+
+        const file_content = output.join('\n')
+        // console.log(file_content)
+        common.writeFileSyncRecursive(output_path, file_content, 'utf8')
+        // fs.writeFileSync(output_path, data)
+      } catch (e) {
+        throw new Error(error.message(e, log))
+      }
+    } else {
+      try {
+        log.info(`writing output to ${chalk.cyanBright(output_path)}`)
+        common.writeFileSyncRecursive(output_path, data, "utf8")
+        // fs.writeFileSync(output_path, data)
+      } catch (e) {
+        throw new Error(error.message(e, log))
+      }
     }
     // const SRC = _.get(component, ["SRC"])
   }
