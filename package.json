@@ -1,6 +1,6 @@
 {
   "name": "code-formation",
-  "version": "0.0.6",
+  "version": "0.1.1",
   "description": "experimental template engine with embeddable DSL for meta-programming",
   "main": "./src/index.js",
   "files": [
@@ -12,7 +12,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "npm publish --access public"
   },
   "bin": "./src/index.js",
   "repository": {
@@ -28,7 +29,6 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^9.1.0",
-    "crypto": "^1.0.1",
     "glob": "^7.2.0",
     "glob-all": "^3.3.0",
     "html-escaper": "^2.0.2",
