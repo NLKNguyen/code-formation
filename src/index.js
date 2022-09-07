@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('./string-extensions.js')
+
 // const glob = require("glob")
 const glob = require("glob-all")
 const path = require("path")
@@ -8,6 +10,7 @@ const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const colorize = require("json-colorizer")
 const chalk = require("chalk")
+// const xmlescape = require('xml-escape');
 
 const scan_snippets = require("./scan-snippets.js")
 const scan_blobs = require("./scan-blobs.js")
@@ -46,6 +49,10 @@ const log = logger
 //   error: console.log,
 // }
 
+
+
+// console.log('<xml>'.escapeXML('abc'))
+
 try {
   let { outdir, scan, define } = Options.read([
     Options.outdir,
@@ -82,7 +89,7 @@ try {
     exports: [],
     OUTDIR: outdir,
     LINE_FEED: "\n",
-    LINE_PREFIX: "0", // can be literal string or number, which is offset indentation from the tag marker
+    LINE_PREFIX: "", // can be literal string or number, which is offset indentation from the tag marker
     SECTION_SEPARATOR: "\n",
   }
 

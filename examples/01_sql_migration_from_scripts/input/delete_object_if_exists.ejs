@@ -1,0 +1,70 @@
+This snippet "delete_object_if_exists", enclosed by `$<` and `$>` syntax, provides
+the deletion statements for SQL objects. Within the snippet block is EJS
+template language that allows embedded programming logic and accessing variables
+that are supplied at runtime. The default parameters can be provided on the line
+as shown below.
+
+Depending on the provided parameters, the proper SQL statements are used. To
+delete a table, simply provide the parameter "table" To delete other objects
+from the table, specify the parameters "trigger", "procedure", or
+"check_constraint" along with "from_table" and "in_schema".
+
+Optionally, you can override the default general configuration:
+CONTINUOUS_EMPTY_LINES=1 LINE_FEED="\n"
+
+$<:delete_object_if_exists table="" primary_key="" trigger="" procedure="" default_constraint="" check_constraint="" from_table=""  in_schema=""
+
+<% if (table) { %>
+-- Check if user-defined table exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= table %>]', N'U') IS NOT NULL)
+BEGIN
+   DROP TABLE [<%= in_schema %>].[<%= table %>];
+END
+<% } %>
+
+<% if (default_constraint) { %>
+-- Check if default constraint exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= default_constraint %>]', N'D') IS NOT NULL)
+BEGIN
+    DROP DEFAULT [<%= in_schema %>].[<%= default_constraint %>];
+END
+<% } %>
+
+<% if (check_constraint) { %>
+-- Check if check constraint exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= check_constraint %>]', N'C') IS NOT NULL)
+BEGIN
+    ALTER TABLE [<%= in_schema %>].[<%= from_table %>]
+       DROP CONSTRAINT [<%= check_constraint %>];
+END
+<% } %>
+
+<% if (primary_key) { %>
+-- Check if primary key constraint exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= primary_key %>]', N'PK') IS NOT NULL)
+BEGIN
+   ALTER TABLE [<%= in_schema %>].[<%= from_table %>]
+      DROP CONSTRAINT [<%= primary_key %>];
+END
+<% } %>
+
+
+<% if (procedure) { %>
+-- Check if stored procedure exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= procedure %>]', N'P') IS NOT NULL)
+BEGIN
+   DROP PROCEDURE [<%= in_schema %>].[<%= procedure %>];
+END
+<% } %>
+
+<% if (trigger) { %>
+-- Check if table trigger exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= trigger %>]', N'TR') IS NOT NULL)
+BEGIN
+   DROP TRIGGER [<%= in_schema %>].[<%= trigger %>];
+END
+<% } %>
+
+GO
+
+$>

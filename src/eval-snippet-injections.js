@@ -5,12 +5,13 @@ const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
 const common = require("./common.js")
-const { DateTime } = require("luxon");
+const { DateTime } = require("luxon")
 
 const source_id = "eval_snippet_injections"
 
 function eval_snippet_injections(content, params, profile, log) {
   let LINE_FEED = _.get(params, ["LINE_FEED"])
+  const OUTDIR = _.get(profile, "OUTDIR")
 
   // console.log(params)
   // console.log(profile)
@@ -22,7 +23,7 @@ function eval_snippet_injections(content, params, profile, log) {
   let hasSnippetInjection = false
   while (line_number < lines.length) {
     const line = lines[line_number]
-    const regex = new RegExp(`${profile.marker_prefix}\\$!:(\\w+)(\\s.*)?`)
+    const regex = new RegExp(`(?<!\`)${profile.marker_prefix}\\$!:(\\w+)(\\s.*)?`)
     const matched = regex.exec(line)
     // const matched = line.match(regex)
     if (!matched) {
@@ -70,7 +71,7 @@ function eval_snippet_injections(content, params, profile, log) {
       // log.info(`LINE_PREFIX "${LINE_PREFIX}"`)
       let snippet
       if (command === "INSERT") {
-        const FILE = _.get(injection_params, ["FILE"])
+        let FILE = _.get(injection_params, ["FILE"])
         const CONTENT = _.get(injection_params, ["CONTENT"])
         const CURRENT_TIME = _.get(injection_params, ["CURRENT_TIME"])
         if (common.isOnlyOneDefined([FILE, CONTENT, CURRENT_TIME])) {
@@ -82,6 +83,12 @@ function eval_snippet_injections(content, params, profile, log) {
         let template
 
         if (!_.isUndefined(FILE)) {
+          if (FILE.startsWith("@")) {
+            FILE = FILE.substring(1)
+          } else {
+            FILE = path.join(OUTDIR, FILE)
+          }
+
           log.info(`read file ${FILE}`)
           // log.info(colorize(injection_params))
 
@@ -96,9 +103,9 @@ function eval_snippet_injections(content, params, profile, log) {
 
         if (!_.isUndefined(CURRENT_TIME)) {
           // console.log(CURRENT_TIME)
-          template =  [DateTime.now().toFormat(CURRENT_TIME)]
+          template = [DateTime.now().toFormat(CURRENT_TIME)]
           // console.log(template)
-        }        
+        }
 
         snippet = {
           kind: "snippet",

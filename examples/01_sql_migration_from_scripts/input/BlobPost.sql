@@ -1,10 +1,10 @@
--- !<: OUT="010_migration.sql" ORDER="100"
+-- !<:OUT="010_migration.sql" ORDER="100"
 
--- $!:delete_object_if_exists table="[dbo].[BlogPost]"
+-- $!:delete_object_if_exists table="BlogPost" in_schema="dbo"
 
 CREATE TABLE [dbo].[BlogPost]
 (
-	[Id] int identity,
+	[Id] int identity,	
 
 	[Title] varchar(256),
 

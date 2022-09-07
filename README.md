@@ -62,7 +62,7 @@ git clone https://github.com/NLKNguyen/code-formation
 
 ```
 
-then go into the cloned directory to install depedencies
+then go into the cloned directory to install dependencies
 
 ```sh
 cd code-formation
@@ -106,12 +106,35 @@ npm rm -g code-formation
 
 `--outdir`: base output path for the output files, if any; some use cases only affect the input files and don't generate output files.
 
+# Syntax Highlighting in Visual Studio Code
+
+Since this is not language specific nor file extension specific, in order to have global syntax highlighting for code-formation markers, you can install this
+[Highlight](https://marketplace.visualstudio.com/items?itemName=fabiospampinato.vscode-highlight) extension and copy the highlight config in [.vscode/settings.json](https://github.com/NLKNguyen/code-formation/blob/main/.vscode/settings.json) to your VS Code user settings or workspace settings.
+
+Example
+
+![image](https://user-images.githubusercontent.com/4667129/188785342-52a06d49-1382-4594-9394-d6633df65cf1.png)
+
 
 # How To Use
 
-This tool scan text files line by line to detect the instruction markers. The instruction can be anywhere on the line, and the content body, if applicable, is between the instruction lines. 
+This tool scan text files line by line to detect the instruction markers. The instruction can be anywhere on the line, and the content body (for certain instructions) is the lines between the open and close markers for that instruction. 
 
 ## Instruction References
+
+Use cases:
+
+* write blocks of text to a file (see Blob section)
+    - order can be specified
+    - the whole output file will be overwritten
+* write blocks of text to a segment in a file (see Anchor section)
+    - the target file needs an anchor marker to denote the segment for writing; the rest of the file remains the same
+    - anchor name must be specified
+    - order can be specified
+    - only the segment of the file will be overwritten
+* define snippet to be injected to the output (see Snippet section)
+* insert static file content to a position of the output
+* insert current date time to a position of the output
 
 ### Blob
 
@@ -127,13 +150,13 @@ The close marker is optional if your intention is to include all the lines from 
 
 **Parameters**
 
-`OUT`: specify the output file name. By default it uses relative path from the `--outdir` CLI argument. You can also specify alternative file paths via built-in variables: `CONTEXT_DIR` or `CURRENT_FILE`. 
+`OUT`: specify the output file name. By default it uses relative path from the `--outdir` CLI argument. You can also specify alternative file paths via built-in variables: `CONTEXT_DIR` or `CURRENT_DIR`. 
 
 + `<%= CONTEXT_DIR %>` evaluates to the path of the working directory that you run `code-formation` from. E.g. `!<:OUT="<%= CONTEXT_DIR %>/destination.txt"` 
 
-+ `<%= CURRENT_FILE %>` evaluates to the path of the file where the instruction is written. E.g. `!<:OUT="<%= CURRENT_FILE %>/destination.txt"` 
++ `<%= CURRENT_DIR %>` evaluates to the path of the file where the instruction is written. E.g. `!<:OUT="<%= CURRENT_DIR %>/destination.txt"` 
 
-`LINE_PREFIX`: specify the prefix for each line. By default it is `LINE_PREFIX=0` which is the same prefix that appears before the open marker. Specifying a negative number such as `-2` means it uses less than 2 character of the aforementioned prefix. It's common to use `LINE_PREFIX=""`. 
+`LINE_PREFIX`: specify the prefix for each line. By default it is `LINE_PREFIX=0` which is the same prefix that appears before the open marker. For example, specifying a negative number such as `-2` means it uses less than 2 character of the aforementioned prefix. The default is `LINE_PREFIX=""`. 
 
 ### Anchor
 
@@ -143,6 +166,17 @@ TODO
 
 TODO
 
+### Escape a marker sequence
+
+To escape a marker (i.e. not getting evaluated), use back tick \` symbol right before it, e.g.
+
+    `!<
+
+### Comment out the rest of a marker line
+
+To comment out the remaining of a marker line, use `#` symbol. For example, having a blob insertion marker within a HTML block comment `<!-- -->` in one line, you need to exclude the closing `-->` to prevent it from  being interpreted as part of argument list for the marker.
+
+    <!-- !<:INSERT FILE="test.txt" # anything from here to end of line is ignored  -->
 
 # ⭐ Understand through examples
 
@@ -158,7 +192,7 @@ Code Formation lets you define chunks of text in many files and unifies them in 
 
 **Problem:**
 1. Error prone and tedious by hand. Although some IDEs let you generate migration scripts from the local DB automatically, the DB support is usually very limited, and it usually rewrites your SQL code structure which makes it hard to later compare your DB server code with your original code in order to do schema diff reliably. 
-2. Have to keep track of latest team convention for the supporting code around or in-between the statements. It's not uncommon for DBA teams to have policies for the object modifications, e.g.: updating a bookeeping table of object/schema versions, switching to appropriate roles for certain actions, etc.
+2. Have to keep track of latest team convention for the supporting code around or in-between the statements. It's not uncommon for DBA teams to have policies for the object modifications, e.g.: updating a bookkeeping table of object/schema versions, switching to appropriate roles for certain actions, etc.
 
 **Solution:**
 
@@ -172,14 +206,14 @@ The output file [`./examples/01_sql_migration_from_scripts/output/010_migration.
 
 With code-formation language (CFL), we can put the instructions directly in the SQL scripts as comments so that they don't affect the behavior of these individual scripts. This language is parsed by simply finding the markers to determine the applicable blocks and ignoring the rest.
 
-For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/BlobPost.sql) we surround the CREATE TABLE statement with `!<` and `!>` block syntax to indicate a **blob block**; within it is EJS template code, but we don't use any EJS specific feature here yet.
+For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/BlobPost.sql) we surround the CREATE TABLE statement with `!<` and `!>` block syntax to indicate a **blob block**; within it is EJS template code, but we don't use any EJS feature in the following code (we will use it for the snippet explained later)
 
 
 
 ```tsql
--- !<: OUT="010_migration.sql" ORDER="100"
+-- !<:OUT="010_migration.sql" ORDER="100"
 
--- $!:delete_object_if_exists table="[dbo].[BlogPost]"
+-- $!:delete_object_if_exists table="BlogPost" in_schema="dbo"
 
 CREATE TABLE [dbo].[BlogPost]
 (
@@ -197,55 +231,63 @@ CREATE TABLE [dbo].[BlogPost]
 -- !>
 ```
 
-On the opening tag line, we specify the `OUT` parameter for the output destination of this blob's rendered result. The `ORDER` parameter specifies the order of the rendering in case of having multiple blobs outputing to the same file; it's simply a key string to be ordered by, even if it can look like a number.  
+On the opening tag line, we specify the `OUT` parameter for the output destination of this blob's rendered result. The `ORDER` parameter specifies the order of the rendering in case of having multiple blobs outputting to the same file; it's simply a key string to be ordered by, even if it can look like a number.
 
-**Note:** It's possible to have optional label for any block, like `!`OPTIONAL_LABEL`<`, `!`OPTIONAL_LABEL`>`, which is useful when there is nested closing tag inside, therefore using the tag label will ensure the intended closing tag must match the label of the opening tag.
+**Note:** It's possible to have optional label for any block, like `!`OPTIONAL_LABEL`<`, `!`OPTIONAL_LABEL`>`, which is useful when there is other closing tag marker within the block, therefore using the tag label will ensure the intended closing tag must match the label of the opening tag.
 
 Another thing to notice is the **snippet injection** syntax `$!:` that is followed by the name of a snippet that is defined elsewhere. The snippets can have input variables, and in this case it can take the "table" parameter.
 
 ```sql
--- $!:delete_object_if_exists table="[dbo].[BlogPost]"
+-- $!:delete_object_if_exists table="BlogPost" in_schema="dbo"
 ```
 
-The above will be rendered using the snippet template defined in `snippets.txt` file. The snippets will be scanned first in the processing pipeline, so it will be available at this point. 
+The above will be rendered using the snippet template defined in `delete_object_if_exists.ejs` file. The snippets will be scanned first in the processing pipeline, so it will be available when the blob is evaluated. 
 
 Here is a part of the **snippet definition block** that is injected above, enclosed by the block syntax `$<`, `$>`. The opening tag has the name of the snippet and optional default parameters. The snippet content is EJS template code in which the control block is enclosed by `<%` and `%>`, while the value reference is enclosed by `<%=` and `%>` (see [EJS](https://ejs.co/) for more features; also [lodash](https://lodash.com/docs/4.17.15) is available as `_` variable reference; in the future, users can import any Node.js library to use here)
 
 ```
-$<:delete_object_if_exists table="" trigger="" procedure="" check_constraint="" 
+$<:delete_object_if_exists table="" primary_key="" trigger="" procedure="" default_constraint="" check_constraint="" from_table="" in_schema=""
 
 <% if (table) { %>
 -- Check if user-defined table exists in order to drop
-IF (OBJECT_ID(N'<%= table %>', N'U') IS NOT NULL)
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= table %>]', N'U') IS NOT NULL)
 BEGIN
-   DROP TABLE <%= table %>;
-END   
+   DROP TABLE [<%= in_schema %>].[<%= table %>];
+END
 <% } %>
 
-...other stuff, see snippets.txt
+<% if (default_constraint) { %>
+-- Check if default constraint exists in order to drop
+IF (OBJECT_ID(N'[<%= in_schema %>].[<%= default_constraint %>]', N'D') IS NOT NULL)
+BEGIN
+    DROP DEFAULT [<%= in_schema %>].[<%= default_constraint %>];
+END
+<% } %>
+
+...other stuff, see delete_object_if_exists.ejs
 
 $>
-
 ```
 
-**Note:**  we don't need `--` prefix comment on the tag lines like in the .sql scripts because this is just a standalone text file solely for the purpose of storing reusable code snippets. Also, there is nothing special about the file name `snippets.txt`. It's just a file in the scanned paths.
+**Note:**  we don't need `--` prefix comment on the tag lines like in the .sql scripts because this is just a standalone text file solely for the purpose of storing reusable code snippets. Also, there is no special convention for snippet file name nor extension name such as `delete_object_if_exists.ejs`. It's just a file in the scanned paths. However, because many editors like VS Code recognize `.ejs` extension for EJS syntax highlighting, it's convenient to use it; for instance:
+
+![image](https://user-images.githubusercontent.com/4667129/188786662-71309ed1-3a44-44d0-9860-4fd98a2bfb61.png)
 
 **Note:** on the snippet tag (definition or injection), you can override any of the default configurations: 
 + `LINE_FEED="\n"` for the new line character between the lines of the output
 + `LINE_PREFIX=""` for the prefix on every line of the output, which is useful for indentation.
 + `CONTINUOUS_EMPTY_LINES=1` for a post-process formatting to remove unwanted continuous empty lines above this threshold
 
-**Note:** default parameters of the snippet definition can be overridden by the snippet injection parameters, including the configuration above.
+**Note:** any parameter of a snippet are overridden by the snippet injection parameters, including the configuration above.
 
 The result of the code we have seen so far is in the first part of the output file [010_migration.sql](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql)
 
 ```tsql
-
 -- Check if user-defined table exists in order to drop
 IF (OBJECT_ID(N'[dbo].[BlogPost]', N'U') IS NOT NULL)
 BEGIN
    DROP TABLE [dbo].[BlogPost];
-END   
+END
 
 GO
 
@@ -261,12 +303,13 @@ CREATE TABLE [dbo].[BlogPost]
 );
 
 GO
+
+...other stuff, see 010_migration.sql
 ```
 
-[`C_BlogPost_Slug.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/C_BlogPost_Slug.sql) and [`PK_BlogPost_Id.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/PK_BlogPost_Id.sql)  have additional blobs to be rendered after the above due to the `ORDER` parameter. These 2 have the same value for `ORDER` because we didn't care about the relative order among themselves as long as they come after the blob for CREATE TABLE statement. In other words, the `ORDER` parameter value needs to be different only if you want a strict sequencial order; otherwise, it just goes by the order of which blob it scans first.
+[`CK_BlogPost_Slug.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/CK_BlogPost_Slug.sql) and [`PK_BlogPost_Id.sql`](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/input/PK_BlogPost_Id.sql)  have additional blobs to be rendered after the above in according to the `ORDER` parameter. These 2 have the same value for `ORDER` because we didn't care about the relative order among themselves as long as they come after the blob for CREATE TABLE statement. In other words, the `ORDER` parameter value needs to be different only if you want a strict sequential order; otherwise, it just goes by the order of which blob is evaluated first.
 
 Final result: [010_migration.sql](https://github.com/NLKNguyen/code-formation/blob/main/examples/01_sql_migration_from_scripts/output/010_migration.sql)
-
 
 
 ### Category 2: TODO

@@ -25,13 +25,15 @@ module.exports = function (files, profile, log) {
       )
     }
     const outparts = OUT.split(":")
-    
+
     let OUTFILE = outparts[0]
     let OUTSLOT = ""
     if (outparts.length > 1) {
       OUTSLOT = outparts[1]
     }
 
+    const SNIPPET = _.get(params, ["SNIPPET"], "")
+    const SNIPPET_CONTENT_AS = _.get(params, ["SNIPPET_CONTENT_AS"], "")
     const ANCHOR = _.get(params, ["ANCHOR"], "")
     const ORDER = _.get(params, ["ORDER"], "")
     const LINE_FEED = _.get(params, ["LINE_FEED"], _.get(profile, "LINE_FEED"))
@@ -81,37 +83,70 @@ module.exports = function (files, profile, log) {
         ORDER,
         LINE_FEED,
         LINE_PREFIX,
-        CURRENT_DIR: `@${path.dirname(src)}`,
+        CURRENT_DIR: `@${src.dirname()}`,
         CONTEXT_DIR: `@.`,
+        CURRENT_FILE_NAME: src.basename(),
+        CURRENT_FILE_NAME_HASH: src.basename().createHash(),
+        CURRENT_FILE_PATH: src,
+        CURRENT_FILE_PATH_HASH: src.createHash(),
         ...local_params,
       }
 
       // log.info("variables")
-      // log.info(colorize(variables, { pretty: true}))
+      // log.info(colorize(variables, { pretty: true }))
+
+      // log.info("params")
+      // log.info(colorize(params, { pretty: true }))
 
       const rendered = compiled(variables)
       // log.info(rendered)
 
-      const enriched = eval_snippet_injections(
-        rendered,
-        variables,
-        profile,
-        log
-      )
+      let enriched = eval_snippet_injections(rendered, variables, profile, log)
+
+      if (!_.isEmpty(SNIPPET)) {
+        const snippet = _.get(profile, ["snippets", SNIPPET])
+        if (_.isUndefined(snippet)) {
+          throw new Error(
+            `[${source_id}] cannot find the snippet ${snippet_name}`
+          )
+        }
+
+        // enriched = common.renderSnippet(snippet, params,)
+
+        const template_str = snippet.template
+          .map((e) => LINE_PREFIX + e)
+          .join(LINE_FEED)
+
+        let body = {}
+        if (_.isEmpty(SNIPPET_CONTENT_AS)) {
+          body = {
+            content: enriched,
+          }
+        } else {
+          body = {
+            [SNIPPET_CONTENT_AS]: enriched,
+          }
+        }
+
+        const merged_params = _.merge(snippet.params, { ...params }, body)
+        const rendered = common.renderTemplate(template_str, merged_params)
+        enriched = rendered
+        log.info(enriched)
+      }
 
       const lines = enriched.split(/\r?\n/)
       let formatted_lines = []
       let continuous_empty_lines = 0
       for (let line of lines) {
         if (common.hasTemplateInstruction(profile, line)) {
-          line = ''
+          line = ""
         }
         if (_.isEmpty(line.trim())) {
           continuous_empty_lines += 1
           if (continuous_empty_lines > 1) {
             continue
           }
-        } else {          
+        } else {
           continuous_empty_lines = 0
         }
         formatted_lines.push(line)
@@ -122,7 +157,7 @@ module.exports = function (files, profile, log) {
       //   formatted_lines[i] = LINE_PREFIX + formatted_lines[i]
       // }
 
-      const formatted_text = formatted_lines.join(LINE_FEED)  + LINE_FEED
+      const formatted_text = formatted_lines.join(LINE_FEED) + LINE_FEED
       log.verbose(formatted_text)
 
       // if (!_.has(profile, ['content', ORDER])) {
@@ -146,21 +181,17 @@ module.exports = function (files, profile, log) {
       // _.set(profile, [...outpath, 'params'], {
       //   SECTION_SEPARATOR
       // })
-      const destination = _.get(
-        profile,
-        outpath,
-        {
-          anchor: ANCHOR,
-          state: {},
-          items: [],
-        }
-      )
+      const destination = _.get(profile, outpath, {
+        anchor: ANCHOR,
+        state: {},
+        items: [],
+      })
       destination.items.push({
         content: formatted_text,
         options: {
           LINE_FEED,
           SECTION_SEPARATOR,
-        }        
+        },
         // separator: SECTION_SEPARATOR,
       })
       _.set(profile, outpath, destination)

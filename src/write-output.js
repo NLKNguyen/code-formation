@@ -57,7 +57,7 @@ module.exports = function (files, profile, log) {
         const content = fs.readFileSync(output_path, "utf8").trim()
         const lines = content.split(/\r?\n/)        
         const openTagRegex = new RegExp(
-          `${profile.marker_prefix}@(\\w*)<:([A-Za-z0-9_]+)`
+          `(?<!\`)${profile.marker_prefix}@(\\w*)<:([A-Za-z0-9_]+)`
         )
         let line_index = 0
         while (line_index < lines.length) {
@@ -83,7 +83,7 @@ module.exports = function (files, profile, log) {
             }
           } else {
             const closeTagRegex = new RegExp(
-              `${profile.marker_prefix}@${focused_entity.tag}>`
+              `(?<!\`)${profile.marker_prefix}@${focused_entity.tag}>`
             )
             const closeTag = closeTagRegex.exec(line)
             if (closeTag) {

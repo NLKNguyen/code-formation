@@ -1,5 +1,12 @@
 const _ = require("lodash")
 const fs = require("fs")
+const crypto = require("crypto")
+
+function createHash(data, len=5) {
+  return crypto.createHash("shake256", { outputLength: len })
+    .update(data)
+    .digest("hex");
+}
 
 function makePrefixString(prefix, line, index) {
   const offset = parseInt(prefix)
@@ -74,7 +81,7 @@ function isOnlyOneDefined(arr) {
 
 function hasTemplateInstruction(profile, line) {  
   const snippetOpenRegex = new RegExp(
-    `${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
+    `(?<!\`)${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
   )
   
   if (snippetOpenRegex.exec(line)) {
@@ -82,14 +89,14 @@ function hasTemplateInstruction(profile, line) {
   }
 
   const snippetCloseRegex = new RegExp(
-    `${profile.marker_prefix}\\$(\\w*)>`
+    `(?<!\`)${profile.marker_prefix}\\$(\\w*)>`
   )
   if (snippetCloseRegex.exec(line)) {
     return true
   }
 
   const blobOpenRegex = new RegExp(
-    `${profile.marker_prefix}!(\\w*)<:(.*)`
+    `(?<!\`)${profile.marker_prefix}!(\\w*)<:(.*)`
   )
   
   if (blobOpenRegex.exec(line)) {
@@ -97,7 +104,7 @@ function hasTemplateInstruction(profile, line) {
   }
 
   const blobCloseRegex = new RegExp(
-    `${profile.marker_prefix}!(\\w*)>`
+    `(?<!\`)${profile.marker_prefix}!(\\w*)>`
   )
   
   if (blobCloseRegex.exec(line)) {
@@ -108,6 +115,7 @@ function hasTemplateInstruction(profile, line) {
 }
 
 module.exports = {
+  createHash,
   makePrefixString,
   renderTemplate,
   writeFileSyncRecursive,

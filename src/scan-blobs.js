@@ -5,6 +5,8 @@ const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const error = require("./error.js")
 const common = require("./common.js")
+
+
 const source_id = "scan-blobs"
 
 module.exports = function (files, profile, log) {
@@ -24,7 +26,7 @@ module.exports = function (files, profile, log) {
           let openTag
           let doneInterpolation = false
           while (true) {
-            const regex = new RegExp(`${profile.marker_prefix}!(\\w*)<:(.*)`)
+            const regex = new RegExp(`(?<!\`)${profile.marker_prefix}!(\\w*)<:(.*)`)
             openTag = regex.exec(line)
 
             if (!openTag || doneInterpolation) {
@@ -32,9 +34,14 @@ module.exports = function (files, profile, log) {
             } else {
               line = common.renderTemplate(line, {
                 ...profile.variables,
-                CURRENT_DIR: `@${path.dirname(file)}`,
+                CURRENT_DIR: `@${file.dirname()}`,
                 CONTEXT_DIR: `@.`,
+                CURRENT_FILE_NAME: file.basename(),
+                CURRENT_FILE_NAME_HASH: file.basename().createHash(),
+                CURRENT_FILE_PATH: file,
+                CURRENT_FILE_PATH_HASH: file.createHash(),
               })
+              // console.log(line)
               doneInterpolation = true
             }
           }
@@ -54,6 +61,7 @@ module.exports = function (files, profile, log) {
 
             const ANCHOR = _.get(params, ["ANCHOR"], "")
             const ORDER = _.get(params, ["ORDER"], "")
+            
 
             const new_blob = {
               task: `${file}#${ANCHOR}#${ORDER}`,
@@ -89,7 +97,7 @@ module.exports = function (files, profile, log) {
 
           // const regex = new RegExp(`${focused_entity.tag}>!(.*)`, "g")
           const regex = new RegExp(
-            `${profile.marker_prefix}!${focused_entity.tag}>`
+            `(?<!\`)${profile.marker_prefix}!${focused_entity.tag}>`
           )
           const closeTag = line.match(regex)
           if (closeTag) {

@@ -1,0 +1,180 @@
+{
+  // Highlight Plugin setting for Code-Formation
+  "highlight.regexes": {
+    // ------------------------------------------------------------------------
+    // Code-Formation BLOB
+    // open marker
+    "(?<!`)(!)(\\w*)(<:)\\s*([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#712B75",
+        "backgroundColor": "#712B75",
+        "color": "#C1A3A3",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#712B75",
+        "color": "#ddc91d"
+      },
+      {
+        "backgroundColor": "#712B75",
+        "color": "#C1A3A3",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#46244C",
+        "color": "#e16f6a",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#46244C",
+        "color": "#BF8B67"
+      }
+    ],
+
+    // close marker
+    "(?<!`)(!)(\\w*)(>)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#712B75",
+        "backgroundColor": "#712B75",
+        "color": "#C1A3A3",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#712B75",
+        "color": "#ffeb3b"
+      },
+      {
+        "backgroundColor": "#712B75",
+        "color": "#C1A3A3",
+        "fontWeight": "bold"
+      }
+    ],
+
+    // ------------------------------------------------------------------------
+    // Code-Formation SNIPPET INJECTION
+    "(?<!`)(\\$)(\\w*)(!:)\\s*([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#006897",
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#ddc91d"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#254B62",
+        "color": "#96c30f",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#254B62",
+        "color": "#77ABB7"
+      }
+    ],
+
+    // ------------------------------------------------------------------------
+    // Code-Formation SNIPPET DEFINITION
+    // open marker
+    "(?<!`)(\\$)(\\w*)(<:)([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#008ca3",
+        "backgroundColor": "#008ca3",
+        "color": "#aafbff",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#008ca3",
+        "color": "#002526"
+      },
+      {
+        "backgroundColor": "#008ca3",
+        "color": "#aafbff",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#e1ba48",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#7ad9ed"
+      }
+    ],
+
+    // close marker
+    "(?<!`)(\\$)(\\w*)(>)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#008ca3",
+        "backgroundColor": "#008ca3",
+        "color": "#aafbff",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#008ca3",
+        "color": "#002526"
+      },
+      {
+        "backgroundColor": "#008ca3",
+        "color": "#aafbff",
+        "fontWeight": "bold"
+      }
+    ],
+
+    // ------------------------------------------------------------------------
+    // Code-Formation ANCHOR
+    // open marker
+    "(?<!`)(@)(\\w*)(<:)([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#00702e",
+        "backgroundColor": "#00702e",
+        "color": "#3ee9ff",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#00702e",
+        "color": "#3ee9ff"
+      },
+      {
+        "backgroundColor": "#00702e",
+        "color": "#3ee9ff",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004a1e",
+        "color": "#c5b211",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004a1e",
+        "color": "#7ab2b9"
+      }
+    ],
+
+    // close marker
+    "(?<!`)(@)(\\w*)(>)([^\\#\\r\\n]*).*": [
+      {
+        "overviewRulerColor": "#00702e",
+        "backgroundColor": "#00702e",
+        "color": "#3ee9ff",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#00702e",
+        "color": "#3ee9ff"
+      },
+      {
+        "backgroundColor": "#00702e",
+        "color": "#3ee9ff",
+        "fontWeight": "bold"
+      }
+    ]
+  }
+}
