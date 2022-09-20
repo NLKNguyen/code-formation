@@ -82,6 +82,24 @@ try {
   let sourceFiles = glob.sync(scan, { nodir: true })
   log.info(`scanning files: ${colorize(sourceFiles, { pretty: true })}`)
 
+  const plugins = {
+    filters: {
+      SkipLines: (content, params, context) => {
+        const lines = content.split(/\r?\n/)
+       
+        if (!_.isUndefined(params.top)) {
+          const top = _.toNumber(params.top)
+          lines.splice(0, top)
+          return lines.join(context.LINE_FEED)
+        }
+        return content
+      },
+      ReplaceAll: (content, params, context) => {        
+        const regex = new RegExp(params.regex, 'gm');        
+        return content.replaceAll(regex, params.with)
+      }
+    }
+  }
   const profile = {
     marker_prefix: "",
     variables: {},
@@ -91,6 +109,7 @@ try {
     LINE_FEED: "\n",
     LINE_PREFIX: "", // can be literal string or number, which is offset indentation from the tag marker
     SECTION_SEPARATOR: "\n",
+    plugins
   }
 
   if (!_.isUndefined(define)) {

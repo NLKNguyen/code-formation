@@ -82,6 +82,9 @@ npm link
 
 # check:
 # npm ls -g code-formation
+
+# to unlink
+# npm unlink
 ```
 
 
