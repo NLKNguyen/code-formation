@@ -1,0 +1,1 @@
+content from some_external_file.txt

@@ -144,7 +144,7 @@ Use cases:
 Blob is a block of text to be written out to a file. The open marker `!<:` and close marker `!>` must be on different lines. 
 
 ```
-!<:OUT="destination.txt"
+!<:WRITE FILE="destination.txt"
 content body
 !>
 ```
@@ -155,9 +155,9 @@ The close marker is optional if your intention is to include all the lines from 
 
 `OUT`: specify the output file name. By default it uses relative path from the `--outdir` CLI argument. You can also specify alternative file paths via built-in variables: `CONTEXT_DIR` or `CURRENT_DIR`. 
 
-+ `<%= CONTEXT_DIR %>` evaluates to the path of the working directory that you run `code-formation` from. E.g. `!<:OUT="<%= CONTEXT_DIR %>/destination.txt"` 
++ `<%= CONTEXT_DIR %>` evaluates to the path of the working directory that you run `code-formation` from. E.g. `!<:WRITE FILE="<%= CONTEXT_DIR %>/destination.txt"` 
 
-+ `<%= CURRENT_DIR %>` evaluates to the path of the file where the instruction is written. E.g. `!<:OUT="<%= CURRENT_DIR %>/destination.txt"` 
++ `<%= CURRENT_DIR %>` evaluates to the path of the file where the instruction is written. E.g. `!<:WRITE FILE="<%= CURRENT_DIR %>/destination.txt"` 
 
 `LINE_PREFIX`: specify the prefix for each line. By default it is `LINE_PREFIX=0` which is the same prefix that appears before the open marker. For example, specifying a negative number such as `-2` means it uses less than 2 character of the aforementioned prefix. The default is `LINE_PREFIX=""`. 
 
@@ -214,7 +214,7 @@ For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blo
 
 
 ```tsql
--- !<:OUT="010_migration.sql" ORDER="100"
+-- !<:WRITE FILE="010_migration.sql" ORDER="100"
 
 -- $!:delete_object_if_exists table="BlogPost" in_schema="dbo"
 

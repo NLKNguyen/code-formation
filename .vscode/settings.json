@@ -55,8 +55,8 @@
     ],
 
     // ------------------------------------------------------------------------
-    // Code-Formation SNIPPET INJECTION
-      "(?<!`)(\\$)(\\w*)(!)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
+    // Code-Formation SNIPPET INJECTION (Inline)
+    "(?<!`)(\\$)(\\w*)(!)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
       {
         "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
@@ -65,7 +65,7 @@
       },
       {
         "backgroundColor": "#006897",
-        "color": "#ddc91d"
+        "color": "#96c30f"
       },
       {
         "backgroundColor": "#006897",
@@ -73,17 +73,69 @@
         "fontWeight": "bold"
       },
       {
-        "backgroundColor": "#254B62",
-        "color": "#77ABB7"
+        "backgroundColor": "#004e5a",
+        "color": "#7ad9ed"
       },
       {
-        "backgroundColor": "#254B62",
-        "color": "#96c30f",
+        "backgroundColor": "#004e5a",
+        "color": "#e1ba48",
         "fontWeight": "bold"
       },
       {
-        "backgroundColor": "#254B62",
+        "backgroundColor": "#004e5a",
         "color": "#77ABB7"
+      }
+    ],
+
+    // Code-Formation SNIPPET INJECTION (Block)
+    // open marker
+    "(?<!`)(\\$)(\\w*)(\\[)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
+      {
+        "overviewRulerColor": "#006897",
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#96c30f"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#7ad9ed"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#e1ba48",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#77ABB7"
+      }
+    ],
+
+    // close marker
+    "(?<!`)(\\$)(\\w*)(\\])": [
+      {
+        "overviewRulerColor": "#006897",
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#96c30f"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
       }
     ],
 
@@ -94,16 +146,16 @@
       {
         "overviewRulerColor": "#61481C",
         "backgroundColor": "#A47E3B",
-        "color": "#dfd87e",
+        "color": "#f7f774",
         "fontWeight": "bold"
       },
       {
         "backgroundColor": "#A47E3B",
-        "color": "#61481C"
+        "color": "#483411"
       },
       {
         "backgroundColor": "#A47E3B",
-        "color": "#dfd87e",
+        "color": "#f7f774",
         "fontWeight": "bold"
       },
       {
@@ -112,12 +164,12 @@
       },
       {
         "backgroundColor": "#61481C",
-        "color": "#e1ba48",
+        "color": "#cece79",
         "fontWeight": "bold"
       },
       {
         "backgroundColor": "#61481C",
-        "color": "#af9432"
+        "color": "#c7a630"
       }
     ],
 
@@ -126,24 +178,24 @@
       {
         "overviewRulerColor": "#61481C",
         "backgroundColor": "#A47E3B",
-        "color": "#dfd87e",
+        "color": "#f7f774",
         "fontWeight": "bold"
       },
       {
         "backgroundColor": "#A47E3B",
-        "color": "#61481C"
+        "color": "#483411"
       },
       {
         "backgroundColor": "#A47E3B",
-        "color": "#dfd87e",
+        "color": "#f7f774",
         "fontWeight": "bold"
-      },
+      }
     ],
 
     // ------------------------------------------------------------------------
     // Code-Formation ANCHOR
     // open marker
-    "(?<!`)(@)(\\w*)(<:)([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
+    "(?<!`)(@)(\\w*)(<)(:)([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
       {
         "overviewRulerColor": "#00702e",
         "backgroundColor": "#00702e",
@@ -161,7 +213,11 @@
       },
       {
         "backgroundColor": "#004a1e",
-        "color": "#c5b211",
+        "color": "#7ab2b9"
+      },
+      {
+        "backgroundColor": "#004a1e",
+        "color": "#00cf52",
         "fontWeight": "bold"
       },
       {

@@ -10,8 +10,8 @@ const common = require("./common.js")
 const source_id = "scan-blobs"
 
 module.exports = function (files, profile, log) {
-  files.forEach((file) => {
-    const content = fs.readFileSync(file, "utf8").trim()
+  files.forEach((src) => {
+    const content = fs.readFileSync(src, "utf8").trim()
     const lines = content.split(/\r?\n/)
     let line_number = 0
     const local_entities = []
@@ -26,7 +26,7 @@ module.exports = function (files, profile, log) {
           let openTag
           let doneInterpolation = false
           while (true) {
-            const regex = new RegExp(`(?<!\`)${profile.marker_prefix}!(\\w*)<:(.*)`)
+            const regex = new RegExp(`(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`)
             openTag = regex.exec(line)
 
             if (!openTag || doneInterpolation) {
@@ -34,12 +34,13 @@ module.exports = function (files, profile, log) {
             } else {
               line = common.renderTemplate(line, {
                 ...profile.variables,
-                CURRENT_DIR: `@${file.dirname()}`,
+                CURRENT_DIR: `@${src.dirname()}`,
                 CONTEXT_DIR: `@.`,
-                CURRENT_FILE_NAME: file.basename(),
-                CURRENT_FILE_NAME_HASH: file.basename().createHash(),
-                CURRENT_FILE_PATH: file,
-                CURRENT_FILE_PATH_HASH: file.createHash(),
+                CURRENT_FILE: `@${src}`,
+                CURRENT_FILE_NAME: src.basename(),
+                CURRENT_FILE_NAME_HASH: src.basename().createHash(),
+                CURRENT_FILE_PATH: src,
+                CURRENT_FILE_PATH_HASH: src.createHash(),
               })
               // console.log(line)
               doneInterpolation = true
@@ -48,8 +49,16 @@ module.exports = function (files, profile, log) {
           // const openTag = line.match(regex)
           // const openTag = line.match(/!(\w*)<:(.*)/)
           if (openTag) {
+            // console.dir(openTag)
             const tag = _.get(openTag, "[1]", "").trim()
-            const rest = _.get(openTag, "[2]", "").trim()
+            const command = _.get(openTag, "[2]", "").trim()
+            const rest = _.get(openTag, "[3]", "").trim()
+
+            if (command.startsWith("@")) {
+              // TODO: macro expansion
+            } else {
+
+            }
             // console.log(tag)
             // console.log(rest)
             let params = {}
@@ -59,18 +68,22 @@ module.exports = function (files, profile, log) {
               throw new Error(error.message(e, log))
             }
 
+            if (command === "PROCESS") {
+              params.FILE = ""
+            }
+
             const ANCHOR = _.get(params, ["ANCHOR"], "")
             const ORDER = _.get(params, ["ORDER"], "")
             
 
             const new_blob = {
-              task: `${file}#${ANCHOR}#${ORDER}`,
+              task: `${src}#${ANCHOR}#${ORDER}`,
               // anchor: ANCHOR,
               matched: openTag,
               kind: "blob",
               tag,
               params,
-              src: file,
+              src: src,
               start: line_number,
               end: line_number,
               template: [],

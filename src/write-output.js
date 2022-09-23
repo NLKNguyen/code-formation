@@ -12,7 +12,10 @@ module.exports = function (files, profile, log) {
   const output = _.get(profile, "output")
   const fileslots = _.keys(output).sort()
 
+  // console.dir(fileslots)
   for (let output_path of fileslots) {
+    // console.log(output_path)
+    // process.exit()
     const package = output[output_path]
 
     // console.dir(package)
@@ -49,13 +52,10 @@ module.exports = function (files, profile, log) {
     // log.info(data)
     if (target_anchor) {
       try {
-        log.info(
-          `writing output to '${target_anchor}' anchor in ${chalk.cyanBright(output_path)}`
-        )
         const output = []
         let focused_entity
         const content = fs.readFileSync(output_path, "utf8").trim()
-        const lines = content.split(/\r?\n/)        
+        const lines = content.split(/\r?\n/)
         const openTagRegex = new RegExp(
           `(?<!\`)${profile.marker_prefix}@(\\w*)<:([A-Za-z0-9_]+)`
         )
@@ -89,22 +89,33 @@ module.exports = function (files, profile, log) {
             if (closeTag) {
               output.push(line)
               focused_entity = undefined
-            } 
+            }
           }
           line_index += 1
         }
 
-        const file_content = output.join('\n')
+        const file_content = output.join("\n")
         // console.log(file_content)
-        common.writeFileSyncRecursive(output_path, file_content, 'utf8')
+        if (!_.isEmpty(output_path)) {
+          log.info(
+            `write output to '${target_anchor}' anchor in ${chalk.cyanBright(
+              output_path
+            )}`
+          )
+          //common.writeFileSyncRecursive(output_path, file_content, "utf8")
+        }
+
         // fs.writeFileSync(output_path, data)
       } catch (e) {
         throw new Error(error.message(e, log))
       }
     } else {
       try {
-        log.info(`writing output to ${chalk.cyanBright(output_path)}`)
-        common.writeFileSyncRecursive(output_path, data, "utf8")
+        if (!_.isEmpty(output_path)) {
+          log.info(`write output to ${chalk.cyanBright(output_path)}`)
+          //common.writeFileSyncRecursive(output_path, data, "utf8")
+        }
+        // common.writeFileSyncRecursive(output_path, data, "utf8")
         // fs.writeFileSync(output_path, data)
       } catch (e) {
         throw new Error(error.message(e, log))

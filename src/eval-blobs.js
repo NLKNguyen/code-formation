@@ -17,24 +17,37 @@ module.exports = function (files, profile, log) {
     // TODO: caller should specify the task and this only apply to that
 
     const { matched, src, start, end, params } = component
-
-    const OUT = _.get(params, ["OUT"])
-    if (!OUT) {
-      throw new Error(
-        `[${source_id}] Missing OUT parameter on ${src}:${start + 1}`
-      )
-    }
-    const outparts = OUT.split(":")
-
-    let OUTFILE = outparts[0]
-    let OUTSLOT = ""
-    if (outparts.length > 1) {
-      OUTSLOT = outparts[1]
+    // console.dir(params)
+    const INTO = _.get(params, ["INTO"])
+    let FILE, ANCHOR
+    // shorthand
+    if (!_.isEmpty(INTO)) {
+      FILE = `@${src}`
+      ANCHOR = INTO
+    } else {
+      FILE = _.get(params, ["FILE"], "")
+      ANCHOR = _.get(params, ["ANCHOR"], "")
     }
 
-    const SNIPPET = _.get(params, ["SNIPPET"], "")
-    const SNIPPET_CONTENT_AS = _.get(params, ["SNIPPET_CONTENT_AS"], "")
-    const ANCHOR = _.get(params, ["ANCHOR"], "")
+    // if (!FILE) {
+    //   throw new Error(
+    //     `[${source_id}] Missing FILE or INTO parameter on ${src}:${start + 1}`
+    //   )
+    // }
+
+    const OUTFILE = FILE
+
+    // const outparts = FILE.split(":")
+
+    // let OUTFILE = outparts[0]
+    // let OUTSLOT = "" // TODO: no need anymore as we have ANCHOR variable
+    // if (outparts.length > 1) {
+    //   OUTSLOT = outparts[1]
+    // }
+
+    // const SNIPPET = _.get(params, ["SNIPPET"], "")
+    // const SNIPPET_CONTENT_AS = _.get(params, ["SNIPPET_CONTENT_AS"], "")
+
     const ORDER = _.get(params, ["ORDER"], "")
     const LINE_FEED = _.get(params, ["LINE_FEED"], _.get(profile, "LINE_FEED"))
 
@@ -77,14 +90,15 @@ module.exports = function (files, profile, log) {
       const variables = {
         ...profile.variables,
         OUTDIR,
-        OUT,
+        FILE,
         OUTFILE,
-        OUTSLOT,
+        // OUTSLOT,
         ORDER,
         LINE_FEED,
         LINE_PREFIX,
         CURRENT_DIR: `@${src.dirname()}`,
         CONTEXT_DIR: `@.`,
+        CURRENT_FILE: `@${src}`,
         CURRENT_FILE_NAME: src.basename(),
         CURRENT_FILE_NAME_HASH: src.basename().createHash(),
         CURRENT_FILE_PATH: src,
@@ -103,36 +117,36 @@ module.exports = function (files, profile, log) {
 
       let enriched = eval_snippet_injections(rendered, variables, profile, log)
 
-      if (!_.isEmpty(SNIPPET)) {
-        const snippet = _.get(profile, ["snippets", SNIPPET])
-        if (_.isUndefined(snippet)) {
-          throw new Error(
-            `[${source_id}] cannot find the snippet ${snippet_name}`
-          )
-        }
+      // if (!_.isEmpty(SNIPPET)) { // TODO: not using this
+      //   const snippet = _.get(profile, ["snippets", SNIPPET])
+      //   if (_.isUndefined(snippet)) {
+      //     throw new Error(
+      //       `[${source_id}] cannot find the snippet ${snippet_name}`
+      //     )
+      //   }
 
-        // enriched = common.renderSnippet(snippet, params,)
+      //   // enriched = common.renderSnippet(snippet, params,)
 
-        const template_str = snippet.template
-          .map((e) => LINE_PREFIX + e)
-          .join(LINE_FEED)
+      //   const template_str = snippet.template
+      //     .map((e) => LINE_PREFIX + e)
+      //     .join(LINE_FEED)
 
-        let body = {}
-        if (_.isEmpty(SNIPPET_CONTENT_AS)) {
-          body = {
-            content: enriched,
-          }
-        } else {
-          body = {
-            [SNIPPET_CONTENT_AS]: enriched,
-          }
-        }
+      //   let body = {}
+      //   if (_.isEmpty(SNIPPET_CONTENT_AS)) {
+      //     body = {
+      //       content: enriched,
+      //     }
+      //   } else {
+      //     body = {
+      //       [SNIPPET_CONTENT_AS]: enriched,
+      //     }
+      //   }
 
-        const merged_params = _.merge(snippet.params, { ...params }, body)
-        const rendered = common.renderTemplate(template_str, merged_params)
-        enriched = rendered
-        log.info(enriched)
-      }
+      //   const merged_params = _.merge(snippet.params, { ...params }, body)
+      //   const rendered = common.renderTemplate(template_str, merged_params)
+      //   enriched = rendered
+      //   log.info(enriched)
+      // }
 
       const lines = enriched.split(/\r?\n/)
       let formatted_lines = []
@@ -164,14 +178,17 @@ module.exports = function (files, profile, log) {
       //   _.set(profile, ['content', ORDER], [])
       // }
 
-      let blob_path
-      if (OUTFILE.startsWith("@")) {
-        blob_path = OUTFILE.substring(1)
-      } else {
-        blob_path = path.join(OUTDIR, OUTFILE)
+      let blob_path = ""
+      if (!_.isEmpty(OUTFILE)) {
+        if (OUTFILE.startsWith("@")) {
+          blob_path = OUTFILE.substring(1)
+        } else {
+          blob_path = path.join(OUTDIR, OUTFILE)
+        }
+  
+        blob_path = path.resolve(blob_path)
       }
-
-      blob_path = path.resolve(blob_path)
+      
       // console.log(blob_path)
 
       // const outpath = ["output", blob_path]

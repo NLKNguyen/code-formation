@@ -84,6 +84,9 @@ try {
 
   const plugins = {
     filters: {
+      Print: (content, params, context) => {
+        console.log(content)
+      },
       SkipLines: (content, params, context) => {
         const lines = content.split(/\r?\n/)
        
