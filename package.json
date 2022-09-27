@@ -1,6 +1,6 @@
 {
   "name": "code-formation",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "experimental template engine with embeddable DSL for meta-programming",
   "main": "./src/index.js",
   "files": [
