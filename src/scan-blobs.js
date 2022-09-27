@@ -6,7 +6,6 @@ const chalk = require("chalk")
 const error = require("./error.js")
 const common = require("./common.js")
 
-
 const source_id = "scan-blobs"
 
 module.exports = function (files, profile, log) {
@@ -17,6 +16,17 @@ module.exports = function (files, profile, log) {
     const local_entities = []
     let focused_entity
     let focused_entity_start_line = 0
+    let commonParameters = {
+      ...profile.variables,
+      OUT_DIR: profile.OUT_DIR,
+      CONTEXT_DIR: ".",
+      CURRENT_DIR: src.dirname(),
+      CURRENT_FILE: src,
+      CURRENT_FILE_NAME: src.basename(),
+      CURRENT_FILE_NAME_HASH: src.basename().createHash(),
+      CURRENT_FILE_PATH: src,
+      CURRENT_FILE_PATH_HASH: src.createHash(),
+    }
     while (line_number < lines.length) {
       try {
         let line = lines[line_number]
@@ -25,22 +35,17 @@ module.exports = function (files, profile, log) {
           // const openTag = line.match(/(\s|\w+|@)<!(.*)/)
           let openTag
           let doneInterpolation = false
+          let openRegex = new RegExp(
+            `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
+          )
           while (true) {
-            const regex = new RegExp(`(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`)
-            openTag = regex.exec(line)
+            openTag = openRegex.exec(line)
 
             if (!openTag || doneInterpolation) {
               break
             } else {
               line = common.renderTemplate(line, {
-                ...profile.variables,
-                CURRENT_DIR: `@${src.dirname()}`,
-                CONTEXT_DIR: `@.`,
-                CURRENT_FILE: `@${src}`,
-                CURRENT_FILE_NAME: src.basename(),
-                CURRENT_FILE_NAME_HASH: src.basename().createHash(),
-                CURRENT_FILE_PATH: src,
-                CURRENT_FILE_PATH_HASH: src.createHash(),
+                ...commonParameters,
               })
               // console.log(line)
               doneInterpolation = true
@@ -49,16 +54,97 @@ module.exports = function (files, profile, log) {
           // const openTag = line.match(regex)
           // const openTag = line.match(/!(\w*)<:(.*)/)
           if (openTag) {
+            log.info(
+              `${chalk.cyanBright(
+                `scan blob starting on line ${line_number + 1} in`
+              )} ${chalk.gray(src)}`
+            )
             // console.dir(openTag)
-            const tag = _.get(openTag, "[1]", "").trim()
+            // const tag = _.get(openTag, "[1]", "").trim()
+            const label = _.get(openTag, "[1]", "").trim()
             const command = _.get(openTag, "[2]", "").trim()
             const rest = _.get(openTag, "[3]", "").trim()
 
-            if (command.startsWith("@")) {
-              // TODO: macro expansion
-            } else {
-
+            let injection_params = {}
+            if (!_.isEmpty(rest)) {
+              try {
+                injection_params = parsePairs.default(rest)
+                // log.info('injection_params')
+                // log.info(colorize(injection_params))
+              } catch (e) {
+                throw new Error(
+                  `[${source_id}] encountered invalid params on line ${line_number} of the blob:\n${line}`
+                )
+              }
             }
+
+            if (command.startsWith("@")) {
+              const snippet_name = command.split("@")[1]
+
+              const snippet = _.get(profile, ["snippets", snippet_name])
+              if (_.isUndefined(snippet)) {
+                //  && !_.includes(["PASSTHROUGH"], command)
+                throw new Error(
+                  `[${source_id}] cannot find the snippet "${snippet_name}" for macro expansion`
+                )
+              }
+
+              const merged_params = _.merge(
+                // {},
+                { ...commonParameters },
+                snippet.params,
+                injection_params
+              )
+
+              let LINE_PREFIX = _.get(
+                injection_params,
+                ["LINE_PREFIX"],
+                _.get(profile, "LINE_PREFIX")
+              )
+
+              const LINE_FEED = _.get(
+                injection_params,
+                ["LINE_FEED"],
+                profile.LINE_FEED
+              )
+
+              const template_str = snippet.template
+                .map((e) => LINE_PREFIX + e) // TODO: not really needed
+                .join(LINE_FEED)
+
+              // log.info(`template_str = ${template_str}`)
+              const macro = common
+                .renderTemplate(template_str, merged_params)
+                .split(/\r?\n/)
+                .filter(Boolean)
+              let macroLines = []
+              let hasPreviousTrailingSpace = true
+              for (let line of macro) {
+                let hasLeadingSpace = line.startsWith(" ")
+                if (!hasPreviousTrailingSpace && !hasLeadingSpace) {
+                  macroLines.push(" " + line)
+                } else {
+                  macroLines.push(line)
+                }
+                hasPreviousTrailingSpace = line.endsWith(" ")
+              }
+              const expansion = macroLines.join("")
+              // log.info(`expansion = ${expansion}`)
+              lines[line_number] = line.replace(
+                openRegex,
+                () => `${profile.marker_prefix}!${label}<:${expansion}`
+              )
+              log.info(
+                `${chalk.cyan(
+                  `expand macro "@${snippet_name}" into marker:`
+                )} ${chalk.gray(lines[line_number])}`
+              )
+              // console.log(lines.join(LINE_FEED))
+              // log.info(`lines[${line_number}] = ${lines[line_number]}`)
+              continue // in next iteration with the same line_number, the macro
+              // expansion will be inline to be evaluated like a regular instruction
+            }
+
             // console.log(tag)
             // console.log(rest)
             let params = {}
@@ -68,20 +154,26 @@ module.exports = function (files, profile, log) {
               throw new Error(error.message(e, log))
             }
 
+            if (!_.includes(["WRITE", "PROCESS"], command)) {
+              throw new Error(
+                `[${source_id}] Missing WRITE or PROCESS command on ${src}:${
+                  line_number + 1
+                }: ${line}`
+              )
+            }
             if (command === "PROCESS") {
               params.FILE = ""
             }
 
             const ANCHOR = _.get(params, ["ANCHOR"], "")
             const ORDER = _.get(params, ["ORDER"], "")
-            
 
             const new_blob = {
               task: `${src}#${ANCHOR}#${ORDER}`,
               // anchor: ANCHOR,
               matched: openTag,
               kind: "blob",
-              tag,
+              tag: label,
               params,
               src: src,
               start: line_number,

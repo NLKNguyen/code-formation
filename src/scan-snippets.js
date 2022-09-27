@@ -1,6 +1,7 @@
 const path = require("path")
 const fs = require("fs")
 const _ = require("lodash")
+const chalk = require("chalk")
 const parsePairs = require("parse-pairs")
 
 const source_id = "scan-snippets"
@@ -28,6 +29,14 @@ module.exports = function (files, profile, log) {
         if (openTag) {
           const tag = _.get(openTag, "[1]", "").trim()
           const snippetId = _.get(openTag, "[2]", "").trim()
+
+          log.info(
+            `${chalk.magenta(
+              `scan snippet "${snippetId}" starting on line ${
+                line_index + 1
+              } in`
+            )} ${chalk.gray(file)}`
+          )
           let rest = _.get(openTag, "[3]", "").trim()
           rest = rest.replace(
             /([A-Za-z0-9_])+\s*=\s*(_[A-Za-z0-9_]+)/,

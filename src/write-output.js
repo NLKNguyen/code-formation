@@ -98,11 +98,11 @@ module.exports = function (files, profile, log) {
         // console.log(file_content)
         if (!_.isEmpty(output_path)) {
           log.info(
-            `write output to '${target_anchor}' anchor in ${chalk.cyanBright(
+            `${chalk.green(`write output to '${target_anchor}' anchor in`)} ${chalk.gray(
               output_path
             )}`
           )
-          //common.writeFileSyncRecursive(output_path, file_content, "utf8")
+          common.writeFileSyncRecursive(output_path, file_content, "utf8")
         }
 
         // fs.writeFileSync(output_path, data)
@@ -112,8 +112,8 @@ module.exports = function (files, profile, log) {
     } else {
       try {
         if (!_.isEmpty(output_path)) {
-          log.info(`write output to ${chalk.cyanBright(output_path)}`)
-          //common.writeFileSyncRecursive(output_path, data, "utf8")
+          log.info(`${chalk.greenBright(`write output to`)} ${chalk.gray(output_path)}`)
+          common.writeFileSyncRecursive(output_path, data, "utf8")
         }
         // common.writeFileSyncRecursive(output_path, data, "utf8")
         // fs.writeFileSync(output_path, data)

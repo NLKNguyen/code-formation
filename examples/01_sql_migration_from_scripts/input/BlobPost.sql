@@ -1,4 +1,4 @@
--- !<:WRITE FILE="010_migration.sql" ORDER="100"
+-- !<:WRITE FILE="<%= OUT_DIR %>/010_migration.sql" ORDER="100"
 
 -- $!:delete_object_if_exists table="BlogPost" in_schema="dbo"
 

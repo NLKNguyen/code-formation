@@ -7,22 +7,25 @@ const colorize = require("json-colorizer")
 const error = require("./error.js")
 const eval_snippet_injections = require("./eval-snippet-injections")
 const common = require("./common.js")
+const queryString = require("query-string")
 const source_id = "eval-blobs"
 
 module.exports = function (files, profile, log) {
   // console.log(chalk.cyanBright("eval-blobs"))
-  const OUTDIR = _.get(profile, "OUTDIR")
+  const OUT_DIR = _.get(profile, "OUT_DIR")
 
   for (let component of _.get(profile, "tasks", [])) {
     // TODO: caller should specify the task and this only apply to that
 
     const { matched, src, start, end, params } = component
-    // console.dir(params)
+
+    log.info(`${chalk.yellow(`evaluate blob [${start + 1}:${end + 1}] in`)} ${chalk.gray(src)}`)
+    // console.dir(component)
     const INTO = _.get(params, ["INTO"])
     let FILE, ANCHOR
     // shorthand
     if (!_.isEmpty(INTO)) {
-      FILE = `@${src}`
+      FILE = src
       ANCHOR = INTO
     } else {
       FILE = _.get(params, ["FILE"], "")
@@ -89,16 +92,16 @@ module.exports = function (files, profile, log) {
       }) //
       const variables = {
         ...profile.variables,
-        OUTDIR,
+        OUT_DIR,
         FILE,
         OUTFILE,
         // OUTSLOT,
         ORDER,
         LINE_FEED,
         LINE_PREFIX,
-        CURRENT_DIR: `@${src.dirname()}`,
-        CONTEXT_DIR: `@.`,
-        CURRENT_FILE: `@${src}`,
+        CURRENT_DIR: src.dirname(),
+        CONTEXT_DIR: `.`,
+        CURRENT_FILE: src,
         CURRENT_FILE_NAME: src.basename(),
         CURRENT_FILE_NAME_HASH: src.basename().createHash(),
         CURRENT_FILE_PATH: src,
@@ -171,8 +174,39 @@ module.exports = function (files, profile, log) {
       //   formatted_lines[i] = LINE_PREFIX + formatted_lines[i]
       // }
 
-      const formatted_text = formatted_lines.join(LINE_FEED) + LINE_FEED
+      let formatted_text = formatted_lines.join(LINE_FEED) + LINE_FEED
       log.verbose(formatted_text)
+
+      let FILTERS = _.get(params, ["FILTERS"], "")
+        .split(/\s/)
+        .filter(Boolean)
+
+      // console.dir(params)
+      for (let filter of FILTERS) {
+        const parts = filter.split("?")
+        // console.dir(parts)
+        const filterName = _.get(parts, [0])
+        const queryParams = _.get(parts, [1], "")
+        let inline_params = queryString.parse(queryParams)
+        inline_params = _.mapValues(inline_params, (value) => {
+          if (value.startsWith("_")) {
+            return _.get(params, value, value)
+          } else {
+            return value
+          }
+        })
+       
+        const handler = _.get(profile.plugins.filters, filterName)
+        // console.dir(handler)
+        // console.dir(inline_params)
+        let context = {
+          plugins: profile.plugins,
+          libraries: profile.libraries,
+          log,
+          LINE_FEED,
+        }
+        formatted_text = handler(formatted_text, inline_params, context)
+      }
 
       // if (!_.has(profile, ['content', ORDER])) {
       //   _.set(profile, ['content', ORDER], [])
@@ -180,13 +214,13 @@ module.exports = function (files, profile, log) {
 
       let blob_path = ""
       if (!_.isEmpty(OUTFILE)) {
-        if (OUTFILE.startsWith("@")) {
-          blob_path = OUTFILE.substring(1)
-        } else {
-          blob_path = path.join(OUTDIR, OUTFILE)
-        }
+        // if (OUTFILE.startsWith("@")) {
+        //   blob_path = OUTFILE.substring(1)
+        // } else {
+        //   blob_path = path.join(OUT_DIR, OUTFILE)
+        // }
   
-        blob_path = path.resolve(blob_path)
+        blob_path = path.resolve(OUTFILE)
       }
       
       // console.log(blob_path)
@@ -217,8 +251,8 @@ module.exports = function (files, profile, log) {
       // _.set(profile, ['content', 'a'], output)
       // profile['content'] = rendered
 
-      // console.log(OUTDIR, OUTFILE)
-      // fs.writeFileSync(path.join(OUTDIR, OUTFILE), rendered)
+      // console.log(OUT_DIR, OUTFILE)
+      // fs.writeFileSync(path.join(OUT_DIR, OUTFILE), rendered)
     } catch (e) {
       throw new Error(
         `[${source_id}] Failed template compilation ${src}:${start + 1}-${

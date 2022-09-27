@@ -6,7 +6,7 @@
     // open marker
     "(?<!`)(!)(\\w*)(<)(:)\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
       {
-        "overviewRulerColor": "#712B75",
+        // "overviewRulerColor": "#712B75",
         "backgroundColor": "#712B75",
         "color": "#C1A3A3",
         "fontWeight": "bold"
@@ -38,7 +38,7 @@
     // close marker
     "(?<!`)(!)(\\w*)(>)": [
       {
-        "overviewRulerColor": "#712B75",
+        // "overviewRulerColor": "#712B75",
         "backgroundColor": "#712B75",
         "color": "#C1A3A3",
         "fontWeight": "bold"
@@ -58,7 +58,7 @@
     // Code-Formation SNIPPET INJECTION (Inline)
     "(?<!`)(\\$)(\\w*)(!)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
       {
-        "overviewRulerColor": "#006897",
+        // "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
         "color": "#a7e5ed",
         "fontWeight": "bold"
@@ -91,7 +91,7 @@
     // open marker
     "(?<!`)(\\$)(\\w*)(\\[)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
       {
-        "overviewRulerColor": "#006897",
+        // "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
         "color": "#a7e5ed",
         "fontWeight": "bold"
@@ -123,7 +123,7 @@
     // close marker
     "(?<!`)(\\$)(\\w*)(\\])": [
       {
-        "overviewRulerColor": "#006897",
+        // "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
         "color": "#a7e5ed",
         "fontWeight": "bold"
@@ -144,7 +144,7 @@
     // open marker
     "(?<!`)(\\$)(\\w*)(<)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
       {
-        "overviewRulerColor": "#61481C",
+        // "overviewRulerColor": "#61481C",
         "backgroundColor": "#A47E3B",
         "color": "#f7f774",
         "fontWeight": "bold"
@@ -176,7 +176,7 @@
     // close marker
     "(?<!`)(\\$)(\\w*)(>)": [
       {
-        "overviewRulerColor": "#61481C",
+        // "overviewRulerColor": "#61481C",
         "backgroundColor": "#A47E3B",
         "color": "#f7f774",
         "fontWeight": "bold"
@@ -197,7 +197,7 @@
     // open marker
     "(?<!`)(@)(\\w*)(<)(:)([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
       {
-        "overviewRulerColor": "#00702e",
+        // "overviewRulerColor": "#00702e",
         "backgroundColor": "#00702e",
         "color": "#3ee9ff",
         "fontWeight": "bold"
@@ -229,7 +229,7 @@
     // close marker
     "(?<!`)(@)(\\w*)(>)": [
       {
-        "overviewRulerColor": "#00702e",
+        // "overviewRulerColor": "#00702e",
         "backgroundColor": "#00702e",
         "color": "#3ee9ff",
         "fontWeight": "bold"

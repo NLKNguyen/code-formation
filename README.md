@@ -153,13 +153,13 @@ The close marker is optional if your intention is to include all the lines from 
 
 **Parameters**
 
-`OUT`: specify the output file name. By default it uses relative path from the `--outdir` CLI argument. You can also specify alternative file paths via built-in variables: `CONTEXT_DIR` or `CURRENT_DIR`. 
+`WRITE FILE=`: specify the output file path. By default, it's relative to the current working directory. You can also specify alternative file paths via built-in variables: `CONTEXT_DIR` or `CURRENT_DIR`. 
 
-+ `<%= CONTEXT_DIR %>` evaluates to the path of the working directory that you run `code-formation` from. E.g. `!<:WRITE FILE="<%= CONTEXT_DIR %>/destination.txt"` 
++ `<%= OUT_DIR %>` evaluates to the path of the supplied `--outdir` CLI argument.. E.g. `!<:WRITE FILE="<%= OUT_DIR %>/destination.txt"` 
 
 + `<%= CURRENT_DIR %>` evaluates to the path of the file where the instruction is written. E.g. `!<:WRITE FILE="<%= CURRENT_DIR %>/destination.txt"` 
 
-`LINE_PREFIX`: specify the prefix for each line. By default it is `LINE_PREFIX=0` which is the same prefix that appears before the open marker. For example, specifying a negative number such as `-2` means it uses less than 2 character of the aforementioned prefix. The default is `LINE_PREFIX=""`. 
+`LINE_PREFIX`: specify the prefix for each line. The default is `LINE_PREFIX=""`. 
 
 ### Anchor
 
@@ -174,13 +174,6 @@ TODO
 To escape a marker (i.e. not getting evaluated), use back tick \` symbol right before it, e.g.
 
     `!<
-
-### Comment out the rest of a marker line
-
-To comment out the remaining of a marker line, use `#` symbol. For example, having a blob insertion marker within a HTML block comment `<!-- -->` in one line, you need to exclude the closing `-->` to prevent it from  being interpreted as part of argument list for the marker.
-
-    <!-- !<:INSERT FILE="test.txt" # anything from here to end of line is ignored  -->
-
 # ⭐ Understand through examples
 
 It's probably best to explain at this early stage by walking through examples that are included in [this repository](https://github.com/NLKNguyen/code-formation/tree/main/examples). Below are examples on how this tool can help in 5 categories. Even though these are concrete examples derived from real-world usage of this tool, it is not limited to any referenced language or technology because the tool just deals with plain text, which can sometimes be of certain code language.
@@ -214,7 +207,7 @@ For example, in [`BlogPost.sql`](https://github.com/NLKNguyen/code-formation/blo
 
 
 ```tsql
--- !<:WRITE FILE="010_migration.sql" ORDER="100"
+-- !<:WRITE FILE="<%= OUT_DIR %>/010_migration.sql" ORDER="100"
 
 -- $!:delete_object_if_exists table="BlogPost" in_schema="dbo"
 

@@ -13,7 +13,7 @@ const source_id = "eval_snippet_injections"
 function eval_snippet_injections(content, params, profile, log) {
   let LINE_FEED = _.get(params, ["LINE_FEED"])
 
-  const OUTDIR = _.get(profile, "OUTDIR")
+  const OUT_DIR = _.get(profile, "OUT_DIR")
 
   // console.log(params)
   // console.log(profile)
@@ -26,17 +26,14 @@ function eval_snippet_injections(content, params, profile, log) {
     `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)\\[:([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
   )
 
-  
-
   const inlineSnippetRegex = new RegExp(
     `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)!:([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
   ) // TODO: accept optional label and include that in the macro expansion
-  
 
   let hasSnippetInjection = false
   while (line_number < lines.length) {
     const line = lines[line_number]
-    
+
     let openRegex = blockSnippetOpenRegex
 
     const blockContent = []
@@ -45,11 +42,90 @@ function eval_snippet_injections(content, params, profile, log) {
     if (matched) {
       // console.dir(matched)
       const label = _.get(matched, "[1]", "").trim()
+      const command = _.get(matched, "[2]", "").trim()
+      const rest = _.get(matched, "[3]", "").trim()
+
+      let injection_params = {}
+      if (!_.isEmpty(rest)) {
+        try {
+          injection_params = parsePairs.default(rest)
+          // log.info('injection_params')
+          // log.info(colorize(injection_params))
+        } catch (e) {
+          throw new Error(
+            `[${source_id}] encountered invalid params on line ${line_number} of the blob:\n${line}`
+          )
+        }
+      }
+
+      let snippet_name = command
+      if (snippet_name.startsWith("@")) {
+        snippet_name = snippet_name.split("@")[1]
+        // console.dir(snippet_name)
+
+        const snippet = _.get(profile, ["snippets", snippet_name])
+        if (_.isUndefined(snippet)) {
+          //  && !_.includes(["PASSTHROUGH"], command)
+          throw new Error(
+            `[${source_id}] cannot find the snippet ${snippet_name} for macro expansion`
+          )
+        }
+
+        const merged_params = _.merge(
+          { ...params },
+          snippet.params,
+          injection_params
+        )
+
+        let LINE_PREFIX = _.get(
+          injection_params,
+          ["LINE_PREFIX"],
+          _.get(profile, "LINE_PREFIX")
+        )
+
+        const template_str = snippet.template
+          .map((e) => LINE_PREFIX + e) // TODO: not really needed
+          .join(LINE_FEED)
+
+        // log.info(`template_str = ${template_str}`)
+        const macro = common
+          .renderTemplate(template_str, merged_params)
+          .split(/\r?\n/)
+          .filter(Boolean)
+        let macroLines = []
+        let hasPreviousTrailingSpace = true
+        for (let line of macro) {
+          let hasLeadingSpace = line.startsWith(" ")
+          if (!hasPreviousTrailingSpace && !hasLeadingSpace) {
+            macroLines.push(" " + line)
+          } else {
+            macroLines.push(line)
+          }
+          hasPreviousTrailingSpace = line.endsWith(" ")
+        }
+        const expansion = macroLines.join("")
+        // log.info(`expansion = ${expansion}`)
+        lines[line_number] = line.replace(openRegex, () => {
+          if (openRegex == blockSnippetOpenRegex) {
+            return `${profile.marker_prefix}$${label}[:${expansion}`
+          } else {
+            // inlineSnippetRegex
+            return `${profile.marker_prefix}$${label}!:${expansion}`
+          }
+        })
+        log.info(
+          `expand macro "@${snippet_name}" into marker: ${lines[line_number]}`
+        )
+        // console.log(lines.join(LINE_FEED))
+        // log.info(`lines[${line_number}] = ${lines[line_number]}`)
+        continue // in next iteration with the same line_number, the macro
+        // expansion will be inline to be evaluated like a regular instruction
+      }
+
       const blockSnippetCloseRegex = new RegExp(
         `(?<!\`)${profile.marker_prefix}\\$${label}\\]`
       )
-      
-      
+
       while (++line_number < lines.length) {
         let blockLine = lines[line_number]
         if (blockSnippetCloseRegex.exec(blockLine)) {
@@ -57,19 +133,16 @@ function eval_snippet_injections(content, params, profile, log) {
         } else {
           blockContent.push(blockLine)
         }
-        
-      }           
+      }
     } else {
       openRegex = inlineSnippetRegex
     }
 
-    
     matched = openRegex.exec(line)
     // const matched = line.match(regex)
     if (!matched) {
       result.push(line)
     } else {
-      
       hasSnippetInjection = true
       // console.dir(matched)
       // log.info(`matched at index: ${matched.index}`)
@@ -111,9 +184,6 @@ function eval_snippet_injections(content, params, profile, log) {
         matched.index
       )
 
-      let FILTERS = _.get(injection_params, ["FILTERS"], "")
-        .split(/\s/)
-        .filter(Boolean)
       // console.dir(FILTERS)
       injection_params.LINE_FEED = LINE_FEED
       injection_params.LINE_PREFIX = LINE_PREFIX
@@ -122,6 +192,72 @@ function eval_snippet_injections(content, params, profile, log) {
       // log.info(colorize(rest))
       // log.info(colorize(injection_params))
       // log.info(`LINE_PREFIX "${LINE_PREFIX}"`)
+
+      if (command.startsWith("@")) {
+        const snippet_name = command.split("@")[1]
+        // console.dir(snippet_name)
+
+        const snippet = _.get(profile, ["snippets", snippet_name])
+        if (_.isUndefined(snippet)) {
+          //  && !_.includes(["PASSTHROUGH"], command)
+          throw new Error(
+            `[${source_id}] cannot find the snippet ${snippet_name} for macro expansion`
+          )
+        }
+
+        const merged_params = _.merge(
+          { ...params },
+          snippet.params,
+          injection_params
+        )
+
+        let LINE_PREFIX = _.get(
+          injection_params,
+          ["LINE_PREFIX"],
+          _.get(profile, "LINE_PREFIX")
+        )
+
+        const template_str = snippet.template
+          .map((e) => LINE_PREFIX + e) // TODO: not really needed
+          .join(LINE_FEED)
+
+        // log.info(`template_str = ${template_str}`)
+        const macro = common
+          .renderTemplate(template_str, merged_params)
+          .split(/\r?\n/)
+          .filter(Boolean)
+        let macroLines = []
+        let hasPreviousTrailingSpace = true
+        for (let line of macro) {
+          let hasLeadingSpace = line.startsWith(" ")
+          if (!hasPreviousTrailingSpace && !hasLeadingSpace) {
+            macroLines.push(" " + line)
+          } else {
+            macroLines.push(line)
+          }
+          hasPreviousTrailingSpace = line.endsWith(" ")
+        }
+        const expansion = macroLines.join("")
+        // log.info(`expansion = ${expansion}`)
+        lines[line_number] = line.replace(openRegex, () => {
+          if (openRegex == blockSnippetOpenRegex) {
+            return `${profile.marker_prefix}$${label}[:${expansion}`
+          } else {
+            // inlineSnippetRegex
+            return `${profile.marker_prefix}$${label}!:${expansion}`
+          }
+        })
+        log.info(
+          `${chalk.cyan(
+            `expand macro "@${snippet_name}" into marker:`
+          )} ${chalk.gray(lines[line_number])}`
+        )
+        // console.log(lines.join(LINE_FEED))
+        // log.info(`lines[${line_number}] = ${lines[line_number]}`)
+        continue // in next iteration with the same line_number, the macro
+        // expansion will be inline to be evaluated like a regular instruction
+      }
+
       let snippet
       if (command === "INSERT") {
         let FILE = _.get(injection_params, ["FILE"])
@@ -137,13 +273,13 @@ function eval_snippet_injections(content, params, profile, log) {
         let template
 
         if (!_.isUndefined(FILE)) {
-          if (FILE.startsWith("@")) {
-            FILE = FILE.substring(1)
-          } else {
-            FILE = path.join(OUTDIR, FILE)
-          }
+          // if (FILE.startsWith("@")) {
+          //   FILE = FILE.substring(1)
+          // } else {
+          //   FILE = path.join(OUT_DIR, FILE)
+          // }
 
-          log.info(`read file ${FILE}`)
+          log.info(`${chalk.blueBright(`insert file`)} ${chalk.gray(FILE)}`)
           // log.info(colorize(injection_params))
 
           const templateString = fs.readFileSync(FILE, "utf8")
@@ -167,63 +303,17 @@ function eval_snippet_injections(content, params, profile, log) {
           injection_params,
           template,
         }
-      } else  {
+      } else if (command !== "PASSTHROUGH") {
         // const snippet_name = _.get(matched, "[1]", "").trim()
         let snippet_name = command
-        let hasMacro = false
-        if (command.startsWith("@")) {
-          snippet_name = command.split("@")[1]
-          hasMacro = true
-        }
 
+        log.info(`${chalk.cyan(`load snippet "${snippet_name}" `)}`)
         snippet = _.get(profile, ["snippets", snippet_name])
-        if (_.isUndefined(snippet) && !_.includes(["PASSTHROUGH"], command)) {
+        if (_.isUndefined(snippet)) {
+          //  && !_.includes(["PASSTHROUGH"], command)
           throw new Error(
-            `[${source_id}] cannot find the snippet ${snippet_name}`
+            `[${source_id}] cannot find the snippet "${snippet_name}"`
           )
-        }
-
-        if (hasMacro) {
-          const merged_params = _.merge(
-            { ...params },
-            snippet.params,
-            injection_params
-          )
-          const template_str = snippet.template
-            .map((e) => LINE_PREFIX + e)
-            .join(LINE_FEED)
-
-          // log.info(`template_str = ${template_str}`)
-          let macro = common
-            .renderTemplate(template_str, merged_params)
-            .split(/\r?\n/)
-            .filter(Boolean)
-          let macroLines = []
-          let hasPreviousTrailingSpace = true
-          for (let line of macro) {
-            let hasLeadingSpace = line.startsWith(" ")
-            if (!hasPreviousTrailingSpace && !hasLeadingSpace) {
-              macroLines.push(" " + line)
-            } else {
-              macroLines.push(line)
-            }
-            hasPreviousTrailingSpace = line.endsWith(" ")
-          }
-          let expansion = macroLines.join("")
-          // log.info(`expansion = ${lines[line_number]}`)
-          lines[line_number] = lines[line_number].replace(
-            openRegex,
-            () => {
-              if (openRegex == blockSnippetOpenRegex) {
-                return `${profile.marker_prefix}$${label}[:${expansion}`
-              } else { // inlineSnippetRegex
-                return `${profile.marker_prefix}$${label}!:${expansion}`
-              }
-            }
-          )
-          // log.info(`lines[${line_number}] = ${lines[line_number]}`)
-          continue // in next iteration with the same line_number, the macro
-          // expansion will be inline to be evaluated like a regular instruction
         }
       }
       // log.info(snippet)
@@ -237,26 +327,28 @@ function eval_snippet_injections(content, params, profile, log) {
           snippet.params,
           injection_params
         )
-        
+
         // log.info("merged_params")
         // log.info(colorize(snippet.params))
         // log.info(colorize(params))
         // log.info(colorize(merged_params))
-  
+
         const template_str = snippet.template
           .map((e) => LINE_PREFIX + e)
           .join(LINE_FEED)
-  
+
         // log.info(template_str)
         // const compiled_template = _.template(template_str, { interpolate: null })
         // // log.info(compiled_template)
         // const rendered = compiled_template(merged_params)
         // log.info(template_str)
-  
-        rendered = common.renderTemplate(template_str, merged_params)
-      } 
-      
 
+        rendered = common.renderTemplate(template_str, merged_params)
+      }
+
+      let FILTERS = _.get(injection_params, ["FILTERS"], "")
+        .split(/\s/)
+        .filter(Boolean)
 
       for (let filter of FILTERS) {
         const parts = filter.split("?")
@@ -276,12 +368,13 @@ function eval_snippet_injections(content, params, profile, log) {
         // console.dir(params)
         let context = {
           plugins: profile.plugins,
+          libraries: profile.libraries,
+          log,
           LINE_FEED,
         }
         rendered = handler(rendered, params, context)
       }
       result.push(rendered)
-      
     }
     line_number += 1
   }

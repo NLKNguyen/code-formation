@@ -29,3 +29,17 @@ String.prototype.dirname = function () {
 String.prototype.basename = function () {
   return path.basename(this.valueOf())
 }
+
+// String.prototype.extname = function () {
+//   return path.extname(this.valueOf())
+// }
+
+// String.prototype.filePathWi = function () {
+//   return path.basename(this.valueOf())
+// }
+
+// String.prototype.extname = function () {
+//   const str = this.valueOf()
+//   const lastIndex = str.lastIndexOf('.');
+//   return str.slice(lastIndex + 1);
+// }
