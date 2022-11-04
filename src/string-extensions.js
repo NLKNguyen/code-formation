@@ -1,5 +1,12 @@
 const htmlEscaper = require("html-escaper")
 
+// const colorize = require("json-colorizer")
+
+// Object.prototype.toPrettyString = function () {  
+//   return colorize(this, { pretty: true })
+// }
+
+
 String.prototype.escapeHTML = function () {
   return htmlEscaper.escape(this.valueOf())
 }
@@ -12,11 +19,12 @@ const crypto = require("crypto")
 
 String.prototype.createHash = function (
   algorithm = "shake256",
-  outputLength = 5,
+  opts = {},
   format = "hex"
 ) {
+  // console.dir({algorithm, opts, format})
   return crypto
-    .createHash(algorithm, { outputLength })
+    .createHash(algorithm, opts)
     .update(this.valueOf())
     .digest(format)
 }

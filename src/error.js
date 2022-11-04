@@ -3,10 +3,11 @@ const colorize = require("json-colorizer")
 
 module.exports = {
   message: function (exception, logger) {
+    // TODO: clean this up, use LoggerFactory, etc.
     const error_line = exception.stack.split("\n")[1]
     logger.error(
-      chalk.red(exception.message) + "\n" + chalk.cyanBright(`${error_line}`)
-    )
+      chalk.red(exception.message)  + "\n" + chalk.gray(` ${error_line.trim()}\n`)
+    )    
   },
 }
 

@@ -4,7 +4,7 @@
     // ------------------------------------------------------------------------
     // Code-Formation BLOB
     // open marker
-    "(?<!`)(!)(\\w*)(<)(:)\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
+    "(?<!`)(!)([A-Za-z0-9_]*)(<)(:)\\s*([@A-Za-z0-9_]+)(\\s*\\(.*\\))?": [
       {
         // "overviewRulerColor": "#712B75",
         "backgroundColor": "#712B75",
@@ -45,7 +45,7 @@
       },
       {
         "backgroundColor": "#712B75",
-        "color": "#ffeb3b"
+        "color": "#ddc91d"
       },
       {
         "backgroundColor": "#712B75",
@@ -56,7 +56,7 @@
 
     // ------------------------------------------------------------------------
     // Code-Formation SNIPPET INJECTION (Inline)
-    "(?<!`)(\\$)(\\w*)(!)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
+    "(?<!`)(\\$)([A-Za-z0-9_]*)(!)(:)\\s*([@A-Za-z0-9_]+)(\\s*\\(.*\\))?": [
       {
         // "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
@@ -65,7 +65,7 @@
       },
       {
         "backgroundColor": "#006897",
-        "color": "#96c30f"
+        "color": "#88cf38"
       },
       {
         "backgroundColor": "#006897",
@@ -89,7 +89,7 @@
 
     // Code-Formation SNIPPET INJECTION (Block)
     // open marker
-    "(?<!`)(\\$)(\\w*)(\\[)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
+    "(?<!`)(\\$)([A-Za-z0-9_]*)(\\[)(:)\\s*([@A-Za-z0-9_]+)(\\s*\\(.*\\))?": [
       {
         // "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
@@ -98,7 +98,7 @@
       },
       {
         "backgroundColor": "#006897",
-        "color": "#96c30f"
+        "color": "#88cf38"
       },
       {
         "backgroundColor": "#006897",
@@ -121,7 +121,7 @@
     ],
 
     // close marker
-    "(?<!`)(\\$)(\\w*)(\\])": [
+    "(?<!`)(\\$)([A-Za-z0-9_]*)(])": [
       {
         // "overviewRulerColor": "#006897",
         "backgroundColor": "#006897",
@@ -130,7 +130,7 @@
       },
       {
         "backgroundColor": "#006897",
-        "color": "#96c30f"
+        "color": "#88cf38"
       },
       {
         "backgroundColor": "#006897",
@@ -139,10 +139,82 @@
       }
     ],
 
+    // Code-Formation SNIPPET ANCHOR (Block)
+    // open marker
+    "(?<!`)(@)([A-Za-z0-9_]*)(\\{)(:)\\s*([@A-Za-z0-9_]+)(\\s*\\(.*\\))?": [
+      {
+        // "overviewRulerColor": "#006897",
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#88cf38"
+      },
+      {
+        "backgroundColor": "#006897",
+        "color": "#a7e5ed",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#7ad9ed"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#e1ba48",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#004e5a",
+        "color": "#77ABB7"
+      }
+    ],
+
+    // Code-Formation ANCHOR
+    // open marker
+    "(?<!`)(!)([A-Za-z0-9_]+)(<)": [
+      {
+        // "overviewRulerColor": "#712B75",
+        "backgroundColor": "#712B75",
+        "color": "#C1A3A3",
+        "fontWeight": "bold"
+      },
+      {
+        "backgroundColor": "#712B75",
+        "color": "#ddc91d"
+      },
+      {
+        "backgroundColor": "#712B75",
+        "color": "#C1A3A3",
+        "fontWeight": "bold"
+      }
+    ],
+
+    // // close marker
+    // "(?<!`)(!)([A-Za-z0-9_]+)(>)": [
+    //   {
+    //     // "overviewRulerColor": "#712B75",
+    //     "backgroundColor": "#712B75",
+    //     "color": "#C1A3A3",
+    //     "fontWeight": "bold"
+    //   },
+    //   {
+    //     "backgroundColor": "#712B75",
+    //     "color": "#ddc91d"
+    //   },
+    //   {
+    //     "backgroundColor": "#712B75",
+    //     "color": "#C1A3A3",
+    //     "fontWeight": "bold"
+    //   }
+    // ],
+
     // ------------------------------------------------------------------------
     // Code-Formation SNIPPET DEFINITION
     // open marker
-    "(?<!`)(\\$)(\\w*)(<)(:)\\s*([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?": [
+    "(?<!`)(\\$)([A-Za-z0-9_]*)(<)(:)\\s*([@A-Za-z0-9_]+)(\\s*\\(.*\\))?": [
       {
         // "overviewRulerColor": "#61481C",
         "backgroundColor": "#A47E3B",
@@ -174,7 +246,7 @@
     ],
 
     // close marker
-    "(?<!`)(\\$)(\\w*)(>)": [
+    "(?<!`)(\\$)([A-Za-z0-9_]*)(>)": [
       {
         // "overviewRulerColor": "#61481C",
         "backgroundColor": "#A47E3B",
@@ -188,59 +260,6 @@
       {
         "backgroundColor": "#A47E3B",
         "color": "#f7f774",
-        "fontWeight": "bold"
-      }
-    ],
-
-    // ------------------------------------------------------------------------
-    // Code-Formation ANCHOR
-    // open marker
-    "(?<!`)(@)(\\w*)(<)(:)([A-Za-z0-9_]+)([^\\#\\r\\n]*).*": [
-      {
-        // "overviewRulerColor": "#00702e",
-        "backgroundColor": "#00702e",
-        "color": "#3ee9ff",
-        "fontWeight": "bold"
-      },
-      {
-        "backgroundColor": "#00702e",
-        "color": "#3ee9ff"
-      },
-      {
-        "backgroundColor": "#00702e",
-        "color": "#3ee9ff",
-        "fontWeight": "bold"
-      },
-      {
-        "backgroundColor": "#004a1e",
-        "color": "#7ab2b9"
-      },
-      {
-        "backgroundColor": "#004a1e",
-        "color": "#00cf52",
-        "fontWeight": "bold"
-      },
-      {
-        "backgroundColor": "#004a1e",
-        "color": "#7ab2b9"
-      }
-    ],
-
-    // close marker
-    "(?<!`)(@)(\\w*)(>)": [
-      {
-        // "overviewRulerColor": "#00702e",
-        "backgroundColor": "#00702e",
-        "color": "#3ee9ff",
-        "fontWeight": "bold"
-      },
-      {
-        "backgroundColor": "#00702e",
-        "color": "#3ee9ff"
-      },
-      {
-        "backgroundColor": "#00702e",
-        "color": "#3ee9ff",
         "fontWeight": "bold"
       }
     ]

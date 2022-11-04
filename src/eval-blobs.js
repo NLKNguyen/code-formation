@@ -1,16 +1,15 @@
 const path = require("path")
 const fs = require("fs")
 const _ = require("lodash")
-const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
 const error = require("./error.js")
-const eval_snippet_injections = require("./eval-snippet-injections")
+const evalSnippetInjection = require("./eval-snippet-injections")
 const common = require("./common.js")
 const queryString = require("query-string")
 const source_id = "eval-blobs"
 
-module.exports = function (files, profile, log) {
+module.exports = async function (files, profile, log) {
   // console.log(chalk.cyanBright("eval-blobs"))
   const OUT_DIR = _.get(profile, "OUT_DIR")
 
@@ -103,9 +102,9 @@ module.exports = function (files, profile, log) {
         CONTEXT_DIR: `.`,
         CURRENT_FILE: src,
         CURRENT_FILE_NAME: src.basename(),
-        CURRENT_FILE_NAME_HASH: src.basename().createHash(),
+        CURRENT_FILE_NAME_HASH: src.basename().createHash("shake256", { outputLength: 5 }),
         CURRENT_FILE_PATH: src,
-        CURRENT_FILE_PATH_HASH: src.createHash(),
+        CURRENT_FILE_PATH_HASH: src.createHash("shake256", { outputLength: 5 }),
         ...local_params,
       }
 
@@ -118,8 +117,9 @@ module.exports = function (files, profile, log) {
       const rendered = compiled(variables)
       // log.info(rendered)
 
-      let enriched = eval_snippet_injections(rendered, variables, profile, log)
-
+      let enriched = (await evalSnippetInjection(rendered, variables, profile, log)).data
+      // console.dir({enriched})
+      // process.exit()
       // if (!_.isEmpty(SNIPPET)) { // TODO: not using this
       //   const snippet = _.get(profile, ["snippets", SNIPPET])
       //   if (_.isUndefined(snippet)) {
@@ -175,7 +175,11 @@ module.exports = function (files, profile, log) {
       // }
 
       let formatted_text = formatted_lines.join(LINE_FEED) + LINE_FEED
-      log.verbose(formatted_text)
+      // log.verbose(formatted_text)
+      // console.dir({
+      //   formatted_lines,
+      //   formatted_text
+      // })
 
       let FILTERS = _.get(params, ["FILTERS"], "")
         .split(/\s/)
@@ -254,10 +258,13 @@ module.exports = function (files, profile, log) {
       // console.log(OUT_DIR, OUTFILE)
       // fs.writeFileSync(path.join(OUT_DIR, OUTFILE), rendered)
     } catch (e) {
+      
+      error.message(e, log)
+      // TODO: use enhanced winston logger to automatically include source file/line number https://egghead.io/lessons/node-js-add-logging-to-a-node-js-application-using-winston
       throw new Error(
-        `[${source_id}] Failed template compilation ${src}:${start + 1}-${
+        `[${source_id}] Failed template processing ${src}:${start + 1}-${
           end + 1
-        }: ${error.message(e, log)}`
+        }` // : ${error.message(e, log)}
       )
     }
   }

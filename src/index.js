@@ -10,6 +10,8 @@ const _ = require("lodash")
 const parsePairs = require("parse-pairs")
 const colorize = require("json-colorizer")
 const chalk = require("chalk")
+const booleanParser = require("boolean")
+// const ora = require("ora")
 // const xmlescape = require('xml-escape');
 
 const scan_snippets = require("./scan-snippets.js")
@@ -21,248 +23,117 @@ const write_output = require("./write-output.js")
 const Options = require("./options.js")
 
 const common = require("./common.js")
-const winston = require("winston")
 
-const logger = winston.createLogger({
-  level: "info",
-  // level: "info",
-  format: winston.format.json(),
-  // defaultMeta: { service: 'user-service' },
-  transports: [
-    // - Write all logs with importance level of `error` or less to `error.log`
-    new winston.transports.File({ filename: "error.log", level: "error" }),
+const logger = require("./logger")
 
-    // - Write all logs with importance level of `info` or less to `combined.log`
-    // new winston.transports.File({ filename: 'combined.log' }),
-  ],
-})
+// const winston = require("winston")
 
-logger.add(
-  new winston.transports.Console({
-    format: winston.format.simple(),
-  })
-)
+// const logger = winston.createLogger({
+//   level: "info",
+//   // level: "info",
+//   format: winston.format.json(),
+//   // defaultMeta: { service: 'user-service' },
+//   transports: [
+//     // - Write all logs with importance level of `error` or less to `error.log`
+//     new winston.transports.File({ filename: "error.log", level: "error" }),
 
-const log = logger
+//     // - Write all logs with importance level of `info` or less to `combined.log`
+//     // new winston.transports.File({ filename: 'combined.log' }),
+//   ],
+// })
 
+// logger.add(
+//   new winston.transports.Console({
+//     format: winston.format.simple(),
+//   })
+// )
+
+// const log = logger
 // const log = {
 //   info: console.log,
 //   error: console.log,
 // }
 
 // console.log('<xml>'.escapeXML('abc'))
+;(async function () {
+  try {
+    let { outdir, scan, define } = Options.read([
+      Options.outdir,
+      Options.scan,
+      Options.define,
+      // TODO: --definitions <file> for dotenv file
+    ])
 
-try {
-  let { outdir, scan, define } = Options.read([
-    Options.outdir,
-    Options.scan,
-    Options.define,
-    // TODO: --definitions <file> for dotenv file
-  ])
+    // if (!outdir) {
+    //   throw new Error("Missing input argument --outdir")
+    // }
 
-  // if (!outdir) {
-  //   throw new Error("Missing input argument --outdir")
-  // }
-
-  if (!scan) {
-    throw new Error("Missing input argument --scan")
-  }
-  // TODO: maybe default to current dir
-  scan = scan.split(";").map((e) => e.trim())
-
-  if (!_.isUndefined(define)) {
-    try {
-      define = parsePairs.default(define)
-    } catch (e) {
-      throw new Error("Invalid format --define")
+    if (!scan) {
+      throw new Error("Missing input argument --scan")
     }
-  }
+    // TODO: maybe default to current dir
+    scan = scan.split(";").map((e) => e.trim())
 
-  let sourceFiles = glob.sync(scan, { nodir: true })
-  log.info(`${chalk.gray(`scanning files:`)} ${colorize(sourceFiles, { pretty: true })}`)
-
-  const plugins = {
-    filters: {
-      Print: (content, params, context) => {
-        console.log(content)
-        return content
-      },
-      SkipLines: (content, params, context) => {
-        const lines = content.split(/\r?\n/)
-
-        if (!_.isUndefined(params.top)) {
-          const top = _.toNumber(params.top)
-          lines.splice(0, top)
-          return lines.join(context.LINE_FEED)
-        }
-
-        return content
-      },
-      ReplaceAll: (content, params, context) => {
-        const regex = new RegExp(params.regex, "gm")
-        return content.replaceAll(regex, params.with)
-      },
-      MarkdownExtract: (content, params, context) => {
-        const marked = require("marked")
-        const lexer = new marked.Lexer()
-        const blocks = lexer.lex(content)
-
-        const type = _.get(params, "type", "")
-        const capture = _.get(params, "capture", "text")
-
-        if (type) {
-          let result = _.filter(blocks, (e) => e.type === type)
-          return _.map(result, (e) => e[capture]).join("")
-        }
-
-        // console.dir(blocks)
-        return content
-      },
-      MarkdownConvert: (content, params, context) => {
-        return content
-      },
-      jQuery: (content, params, context) => {
-        return content
-      },
-      Save: (content, params, context) => {     
-        const _ = context.libraries.lodash
-        const common = context.libraries.common
-        const file = _.get(params, "file")
-        const input = _.get(params, "input", "stdin")
-        const output = _.get(params, "output", "stdout")
-
-        if (file) {
-          if (input === "stdin") {            
-            common.writeFileSyncRecursive(file, content, "utf8")
-          } else {
-            common.writeFileSyncRecursive(file, input, "utf8")
-          }          
-        }            
-        
-        if (output === "stdin") {            
-          return content
-        } else {
-          return file
-        }          
-
-      },
-      Execute: (content, params, context) => {
-        // const chalk = context.libraries.chalk
-        const { execSync, spawnSync } = require("child_process")
-
-        const command = _.get(params, "command", "")
-        const encoding = _.get(params, "encoding", "utf8")
-
-        const acceptStatus = _.get(params, "accept-status", 0)
-        const acceptStderr = _.get(params, "accept-stderr", "")
-        const acceptStdout = _.get(params, "accept-stdout")
-        const acceptSignal = _.get(params, "accept-signal", null)
-
-        const input = _.get(params, "input", "stdin")
-        const output = _.get(params, "output", "stdout")
-
-        const options = {
-          encoding,
-          shell: true,
-        }
-
-        if (input === "stdin") {
-          options.input = content
-          context.log.info(`execute command with standard input: ${command}`)
-        } else {
-          context.log.info(`execute command: ${command}`)
-        }
-
-        try {
-          // const child = child_process.execSync("echo", options);
-          // console.log(child)
-          // console.log(`content = ${content}`)
-          // const output = spawnSync("plantuml -pipe > test.png", options)
-          const response = spawnSync(command, options)
-          // write to child process stdin
-          // child.stdin.write("Hello World");
-          // child.w
-
-          console.dir(response)
-
-          if (output === "stdin") {
-            return content
-          } else {
-            return response[output]
-          }
-
-          // const output = execSync(command, options)
-          // return output
-        } catch (error) {
-          context.log.error(error.message)
-          context.log.error(error.stderr)
-          throw new Error(error)
-          // error.status // 0 : successful exit, but here in exception it has to be greater than 0
-          // error.message // Holds the message you typically want.
-          // error.stderr // Holds the stderr output. Use `.toString()`.
-          // error.stdout // Holds the stdout output. Use `.toString()`.
-        }
-      },
-    },
-  }
-  const profile = {
-    marker_prefix: "",
-    variables: {},
-    snippets: {},
-    exports: [],
-    OUT_DIR: outdir,
-    LINE_FEED: "\n",
-    LINE_PREFIX: "", // can be literal string or number, which is offset indentation from the tag marker
-    SECTION_SEPARATOR: "\n",
-    plugins,
-    libraries: {
-      lodash: _,
-      chalk,
-      fs,
-      common,
+    if (!_.isUndefined(define)) {
+      try {
+        define = parsePairs.default(define)
+      } catch (e) {
+        throw new Error("Invalid format --define")
+      }
     }
+
+    let sourceFiles = glob.sync(scan, { nodir: true })
+    logger.info(
+      `${chalk.gray(`scanning files:`)} ${colorize(sourceFiles, {
+        pretty: true,
+      })}`
+    )
+
+    if (!_.isUndefined(define)) {
+      common.profile.variables = define
+    }
+    // logger.info(
+    //   colorize(profile, {
+    //     pretty: true,
+    //   })
+    // )
+    // scan_variables(sourceFiles, profile)
+
+    common.profile.OUT_DIR = outdir
+    // console.dir(common.profile)
+
+    await scan_snippets(sourceFiles, common.profile, logger)
+
+    // console.log(profile.snippets)
+    // process.exit()
+    // scan_plugs(sourceFiles, profile)
+
+    // eval_plugs(sourceFiles, profile)
+
+    //   scan_slots(sourceFiles, profile)
+
+    await scan_blobs(sourceFiles, common.profile, logger) // scan_slots(sourceFiles, profile)
+
+    await eval_blobs(sourceFiles, common.profile, logger)
+
+    await write_output(sourceFiles, common.profile, logger)
+
+    // logger.verbose(
+    //   colorize(profile, {
+    //     pretty: true,
+    //   })
+    // )
+
+    // scan_captures(profile)
+    // eval_captures(profile)
+    // write_exports(profile)
+    // logger.info(profile)
+    // logger.info(colorize({ outdir, scan }))
+  } catch (e) {
+    // logger.info()
+    logger.error(chalk.red(e))
   }
-
-  if (!_.isUndefined(define)) {
-    profile.variables = define
-  }
-  // log.info(
-  //   colorize(profile, {
-  //     pretty: true,
-  //   })
-  // )
-  // scan_variables(sourceFiles, profile)
-
-  scan_snippets(sourceFiles, profile, log)
-
-  // scan_plugs(sourceFiles, profile)
-
-  // eval_plugs(sourceFiles, profile)
-
-  //   scan_slots(sourceFiles, profile)
-
-  scan_blobs(sourceFiles, profile, log) // scan_slots(sourceFiles, profile)
-
-  eval_blobs(sourceFiles, profile, log)
-
-  write_output(sourceFiles, profile, log)
-
-  // log.verbose(
-  //   colorize(profile, {
-  //     pretty: true,
-  //   })
-  // )
-
-  // scan_captures(profile)
-  // eval_captures(profile)
-  // write_exports(profile)
-  // log.info(profile)
-  // log.info(colorize({ outdir, scan }))
-} catch (e) {
-  log.info()
-  log.error(chalk.red(e))
-}
-
+})()
 // // console.log(chalk.blue('test'))
 
 // // eval_blobs(profile)

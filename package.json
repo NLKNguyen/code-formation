@@ -21,24 +21,34 @@
     "url": "git+https://github.com/NLKNguyen/code-formation.git"
   },
   "author": "Nikyle Nguyen",
-  "license": "ISC",
+  "license": "Unlicense",
   "bugs": {
     "url": "https://github.com/NLKNguyen/code-formation/issues"
   },
   "homepage": "https://github.com/NLKNguyen/code-formation#readme",
   "dependencies": {
+    "@npmcli/promise-spawn": "^4.0.0",
+    "axios": "^0.27.2",
+    "boolean": "^3.2.0",
     "chalk": "^4.1.2",
+    "cheerio": "^1.0.0-rc.12",
     "commander": "^9.1.0",
     "glob": "^7.2.0",
     "glob-all": "^3.3.0",
     "html-escaper": "^2.0.2",
     "json-colorizer": "^2.2.2",
+    "jsonata": "^1.8.6",
     "lodash": "^4.17.21",
     "luxon": "^3.0.1",
     "marked": "^4.1.0",
+    "pako": "^2.0.4",
     "parse-pairs": "^1.1.0",
     "query-string": "^7.1.1",
-    "winston": "^3.6.0"
+    "requireg": "^0.2.2",
+    "s-expression.js": "^0.4.0",
+    "vm2": "^3.9.11",
+    "winston": "^3.6.0",
+    "zx": "^7.1.1"
   },
   "keywords": [
     "template",

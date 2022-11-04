@@ -1,16 +1,15 @@
 const path = require("path")
 const fs = require("fs")
 const _ = require("lodash")
-const parsePairs = require("parse-pairs")
 const chalk = require("chalk")
 const error = require("./error.js")
 const common = require("./common.js")
 
 const source_id = "scan-blobs"
 
-module.exports = function (files, profile, log) {
-  files.forEach((src) => {
-    const content = fs.readFileSync(src, "utf8").trim()
+module.exports = async function (files, profile, log) {
+  for (let file of files) {
+    const content = fs.readFileSync(file, "utf8").trim()
     const lines = content.split(/\r?\n/)
     let line_number = 0
     const local_entities = []
@@ -20,12 +19,12 @@ module.exports = function (files, profile, log) {
       ...profile.variables,
       OUT_DIR: profile.OUT_DIR,
       CONTEXT_DIR: ".",
-      CURRENT_DIR: src.dirname(),
-      CURRENT_FILE: src,
-      CURRENT_FILE_NAME: src.basename(),
-      CURRENT_FILE_NAME_HASH: src.basename().createHash(),
-      CURRENT_FILE_PATH: src,
-      CURRENT_FILE_PATH_HASH: src.createHash(),
+      CURRENT_DIR: file.dirname(),
+      CURRENT_FILE: file,
+      CURRENT_FILE_NAME: file.basename(),
+      CURRENT_FILE_NAME_HASH: file.basename().createHash("shake256", { outputLength: 5 }),
+      CURRENT_FILE_PATH: file,
+      CURRENT_FILE_PATH_HASH: file.createHash("shake256", { outputLength: 5 }),
     }
     while (line_number < lines.length) {
       try {
@@ -35,9 +34,15 @@ module.exports = function (files, profile, log) {
           // const openTag = line.match(/(\s|\w+|@)<!(.*)/)
           let openTag
           let doneInterpolation = false
+          // let openRegex = new RegExp(
+          //   `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
+          // )
           let openRegex = new RegExp(
-            `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
+            `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?\\s*(\\(.*\\))?`
           )
+          // const regex = new RegExp(
+          //   `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)<:([@A-Za-z0-9_]+)\\s*(\\(.*\\))?`
+          // )
           while (true) {
             openTag = openRegex.exec(line)
 
@@ -57,7 +62,7 @@ module.exports = function (files, profile, log) {
             log.info(
               `${chalk.cyanBright(
                 `scan blob starting on line ${line_number + 1} in`
-              )} ${chalk.gray(src)}`
+              )} ${chalk.gray(file)}`
             )
             // console.dir(openTag)
             // const tag = _.get(openTag, "[1]", "").trim()
@@ -65,18 +70,9 @@ module.exports = function (files, profile, log) {
             const command = _.get(openTag, "[2]", "").trim()
             const rest = _.get(openTag, "[3]", "").trim()
 
-            let injection_params = {}
-            if (!_.isEmpty(rest)) {
-              try {
-                injection_params = parsePairs.default(rest)
-                // log.info('injection_params')
-                // log.info(colorize(injection_params))
-              } catch (e) {
-                throw new Error(
-                  `[${source_id}] encountered invalid params on line ${line_number} of the blob:\n${line}`
-                )
-              }
-            }
+            let injection_params = await common.parseParams(rest)
+            // console.dir(injection_params)
+            // process.exit()
 
             if (command.startsWith("@")) {
               const snippet_name = command.split("@")[1]
@@ -147,16 +143,21 @@ module.exports = function (files, profile, log) {
 
             // console.log(tag)
             // console.log(rest)
-            let params = {}
-            try {
-              params = parsePairs.default(rest)
-            } catch (e) {
-              throw new Error(error.message(e, log))
+            let params = await common.parseParams(rest)
+            
+            let FILE = _.get(params, ["FILE"], "")
+            let ANCHOR = _.get(params, ["ANCHOR"], "")
+            let ORDER = _.get(params, ["ORDER"], "")
+
+            let template = []
+
+            let templateAdder = (template, line) => {
+              template.push(line)
             }
 
-            if (!_.includes(["WRITE", "PROCESS"], command)) {
+            if (!_.includes(["WRITE", "PROCESS", "EMBED"], command)) {
               throw new Error(
-                `[${source_id}] Missing WRITE or PROCESS command on ${src}:${
+                `[${source_id}] Missing WRITE, EMBED, or PROCESS command on ${file}:${
                   line_number + 1
                 }: ${line}`
               )
@@ -165,35 +166,54 @@ module.exports = function (files, profile, log) {
               params.FILE = ""
             }
 
-            const ANCHOR = _.get(params, ["ANCHOR"], "")
-            const ORDER = _.get(params, ["ORDER"], "")
+            if (command === "EMBED") {
+              if (!label) {
+                throw new Error(
+                  `[${source_id}] missing marker label for EMBED instruction on ${file}:${
+                    line_number + 1
+                  }: ${line}`
+                )
+              }
+
+              if (!FILE) {
+                throw new Error(
+                  `[${source_id}] missing FILE param for EMBED instruction on ${file}:${
+                    line_number + 1
+                  }: ${line}`
+                )
+              }
+                       
+              // the content to be inserted is done via the snippet injection
+              // marker in this template
+              template = [
+                `$!:INSERT (FILE "${FILE}") (ANCHOR "${ANCHOR}")`
+              ]
+              // ignore all content within this block because it's supposed to
+              // be replace by the EMBED instruction
+              templateAdder = (template, line) => {}
+              
+              // point the blob output to the current file at the current anchor
+              params.FILE = file
+              params.ANCHOR = label
+            }
 
             const new_blob = {
-              task: `${src}#${ANCHOR}#${ORDER}`,
+              task: `${FILE}#${ANCHOR}#${ORDER}`,
               // anchor: ANCHOR,
               matched: openTag,
               kind: "blob",
               tag: label,
               params,
-              src: src,
+              src: file,
               start: line_number,
               end: line_number,
-              template: [],
+              template, templateAdder,
             }
+            // console.dir(new_blob)
             const tasks = _.get(profile, ["tasks"], [])
             tasks.push(new_blob)
             _.set(profile, ["tasks"], tasks)
 
-            // const tasks = _.get(profile, "tasks", [])
-            // tasks.push({
-            //   blob: {
-            //     path:  blob_path,
-            //     order: `#${_.get(params, ["ORDER"])}`
-            //   }
-            // })
-            // _.set(profile, "tasks", tasks)
-
-            // console.log(openTag)
             focused_entity = new_blob
             focused_entity_start_line = line_number
           }
@@ -213,7 +233,8 @@ module.exports = function (files, profile, log) {
             line_number = focused_entity_start_line
             focused_entity = undefined
           } else {
-            focused_entity.template.push(line)
+            focused_entity.templateAdder(focused_entity.template, line)
+            // focused_entity.template.push(line)
           }
         }
         line_number += 1
@@ -223,5 +244,5 @@ module.exports = function (files, profile, log) {
         )
       }
     }
-  })
+  }
 }

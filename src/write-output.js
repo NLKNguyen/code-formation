@@ -6,7 +6,7 @@ const colorize = require("json-colorizer")
 const error = require("./error")
 const common = require("./common")
 
-module.exports = function (files, profile, log) {
+module.exports = async function (files, profile, log) {
   // log.info(chalk.cyanBright("write-output"))
 
   const output = _.get(profile, "output")
@@ -57,7 +57,8 @@ module.exports = function (files, profile, log) {
         const content = fs.readFileSync(output_path, "utf8").trim()
         const lines = content.split(/\r?\n/)
         const openTagRegex = new RegExp(
-          `(?<!\`)${profile.marker_prefix}@(\\w*)<:([A-Za-z0-9_]+)`
+          // `(?<!\`)${profile.marker_prefix}!(\\w*)<`
+          `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]+)<`
         )
         let line_index = 0
         while (line_index < lines.length) {
@@ -70,7 +71,7 @@ module.exports = function (files, profile, log) {
 
             if (openTag) {
               const tag = _.get(openTag, "[1]", "").trim()
-              const anchor = _.get(openTag, "[2]", "").trim()
+              const anchor = tag //_.get(openTag, "[2]", "").trim()
 
               if (anchor === target_anchor) {
                 focused_entity = {
@@ -83,7 +84,8 @@ module.exports = function (files, profile, log) {
             }
           } else {
             const closeTagRegex = new RegExp(
-              `(?<!\`)${profile.marker_prefix}@${focused_entity.tag}>`
+              // `(?<!\`)${profile.marker_prefix}@${focused_entity.tag}>`
+              `(?<!\`)${profile.marker_prefix}!${focused_entity.tag}>`
             )
             const closeTag = closeTagRegex.exec(line)
             if (closeTag) {
