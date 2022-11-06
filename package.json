@@ -1,7 +1,7 @@
 {
   "name": "code-formation",
-  "version": "0.2.0",
-  "description": "experimental template engine with embeddable DSL for meta-programming",
+  "version": "0.3.0",
+  "description": "context-free text manipulator using line-oriented DSL for easy embedding to existing source code",
   "main": "./src/index.js",
   "files": [
     "src",
@@ -21,7 +21,7 @@
     "url": "git+https://github.com/NLKNguyen/code-formation.git"
   },
   "author": "Nikyle Nguyen",
-  "license": "Unlicense",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/NLKNguyen/code-formation/issues"
   },

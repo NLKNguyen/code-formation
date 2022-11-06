@@ -627,13 +627,13 @@ Contributions, issues and feature requests are welcome! Feel free to check [issu
 
 ## 🙇 Your support is very much appreciated
 
-I create open-source projects on GitHub and continue to develop/maintain as they are helping others. You can integrate and use these projects in your applications for free! You are free to modify and redistribute anyway you like, even in commercial products.
+I create open-source projects on GitHub and continue to develop/maintain them as they are helping others. You can integrate and use these projects in your applications for free! You are free to modify and redistribute any way you like, even in commercial products.
 
-I try to respond to users' feedback and feature requests as much as possible. Obviously, this takes a lot of time and efforts (speaking of mental context-switching between different projects and daily work). Therefore, if these projects help you in your work, and you want to encourage me to continue create, here are a few ways you can support me:
+I try to respond to users' feedback and feature requests as much as possible. This takes a lot of time and effort (speaking of mental context-switching between different projects and daily work). Therefore, if these projects help you in your work, and you want to support me to continue developing, here are a few ways you can support me:
 
--   💬 Following my blog and social profiles listed above to help me connect with your network
--   ⭐️ Starring this project and sharing with others as more users come, more great ideas arrive!
--   ☘️ Donating any amount is a great way to help me work on the projects more regularly!
+*   💬 Following my blog and social profiles listed above to help me connect with your network
+*   ⭐️ Starring this project and sharing with others as more users come, more great ideas arrive!
+*   ☘️ Donating any amount is a great way to help me work on the projects more regularly!
 
 <p>
 
@@ -655,6 +655,6 @@ I try to respond to users' feedback and feature requests as much as possible. Ob
 
 Copyright © 2022 [Nikyle Nguyen](https://github.com/NLKNguyen)
 
-The project is [Unlicensed License](https://github.com/NLKNguyen/code-formation/blob/master/LICENSE).
+The project is [MIT License](https://github.com/NLKNguyen/code-formation/blob/master/LICENSE).
 
-It is "a license with no conditions whatsoever which dedicates works to the public domain. Unlicensed works, modifications, and larger works may be distributed under different terms and without source code." This simply means that the project is free to use in any capacity without any warranty while reserving the rights for others to also freely do anything with it.
+It is a simple permissive license with conditions only requiring the preservation of copyright and license notices. Licensed works, modifications, and larger works may be distributed under different terms and without source code.
