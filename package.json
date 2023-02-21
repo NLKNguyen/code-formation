@@ -28,7 +28,6 @@
   "homepage": "https://github.com/NLKNguyen/code-formation#readme",
   "dependencies": {
     "@npmcli/promise-spawn": "^4.0.0",
-    "axios": "^0.27.2",
     "boolean": "^3.2.0",
     "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",
@@ -41,14 +40,14 @@
     "lodash": "^4.17.21",
     "luxon": "^3.0.1",
     "marked": "^4.1.0",
+    "node-fetch": "^2.6.7",
     "pako": "^2.0.4",
     "parse-pairs": "^1.1.0",
     "query-string": "^7.1.1",
     "requireg": "^0.2.2",
     "s-expression.js": "^0.4.0",
     "vm2": "^3.9.11",
-    "winston": "^3.6.0",
-    "zx": "^7.1.1"
+    "winston": "^3.6.0"
   },
   "keywords": [
     "template",

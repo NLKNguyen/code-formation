@@ -23,8 +23,8 @@ const write_output = require("./write-output.js")
 const Options = require("./options.js")
 
 const common = require("./common.js")
-
-const logger = require("./logger")
+const error = require("./error.js")
+const logger = require("./logger.js")
 
 // const winston = require("winston")
 
@@ -72,7 +72,7 @@ const logger = require("./logger")
       throw new Error("Missing input argument --scan")
     }
     // TODO: maybe default to current dir
-    scan = scan.split(";").map((e) => e.trim())
+    scan = [".code-formation/**/*", ...scan.split(",").map((e) => e.trim())]
 
     if (!_.isUndefined(define)) {
       try {
@@ -131,7 +131,11 @@ const logger = require("./logger")
     // logger.info(colorize({ outdir, scan }))
   } catch (e) {
     // logger.info()
-    logger.error(chalk.red(e))
+    
+    // logger.error(chalk.red(e))
+    error.message(e, logger)
+    // console.error(e)
+    process.exit(1)
   }
 })()
 // // console.log(chalk.blue('test'))

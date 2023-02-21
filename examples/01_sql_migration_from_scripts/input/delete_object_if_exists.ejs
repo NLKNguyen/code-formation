@@ -10,7 +10,7 @@ from the table, specify the parameters "trigger", "procedure", or
 "check_constraint" along with "from_table" and "in_schema".
 
 Optionally, you can override the default general configuration:
-CONTINUOUS_EMPTY_LINES=1 LINE_FEED="\n"
+(CONTINUOUS_EMPTY_LINES 1) (LINE_BREAK "\n")
 
 $<:delete_object_if_exists (table "") (primary_key "") (trigger "") (procedure "") (default_constraint "") (check_constraint "") (from_table "")  (in_schema "")
 

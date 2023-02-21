@@ -37,6 +37,7 @@ async function evalBlock(
   if (!matched) {
     return null
   }
+
   injection.snippetInjection = true
   // console.dir(matched)
   // process.exit()
@@ -60,16 +61,19 @@ async function evalBlock(
     }
   }
 
+  // console.log(rest)
   injection.params = await common.parseParams(rest)
+  // process.exit()
+  // TODO: should just be one "LINE_BREAK" instead of LINE_BREAK/LINE_BREAK
+  const LINE_BREAK = _.get(injection.params, ["LINE_BREAK"], common.profile.LINE_BREAK)
+  const INPUT = injection.blockContent.join(LINE_BREAK)
 
-  const NEWLINE = _.get(injection.params, ["NEWLINE"], common.profile.NEWLINE)
-  const INPUT = injection.blockContent.join(NEWLINE)
-
-  const LOGGER = logger
 
   injection.args = _.merge({}, injection.params, {
     INPUT,
-    LOGGER,
+    _logger: logger,
+    _common: common
+    // _ is available by the template library
   })
   let snippet_name = command
   if (snippet_name.startsWith("@")) {
@@ -77,7 +81,7 @@ async function evalBlock(
     snippet_name = snippet_name.split("@")[1]
     // console.dir(snippet_name)
 
-    const snippet = _.get(profile, ["snippets", snippet_name])
+    const snippet = _.get(common.profile, ["snippets", snippet_name])
     if (_.isUndefined(snippet)) {
       //  && !_.includes(["PASSTHROUGH"], command)
       throw new Error(
@@ -91,27 +95,32 @@ async function evalBlock(
     const expansion = common.serializeMacro(`(${macro})`)
 
     lines[line_number] = line.replace(openRegex, () => {
-      return macroExpansionCallback(profile.marker_prefix, label, expansion)
+      return macroExpansionCallback(common.profile.marker_prefix, label, expansion)
     })
-    log.info(
+    logger.info(
       `${chalk.cyan(`expand macro "@${snippet_name}":`)} ${chalk.gray(
         lines[line_number]
       )}`
     )
     // return injection
-    // console.log(lines.join(LINE_FEED))
-    // log.info(`lines[${line_number}] = ${lines[line_number]}`)
+    // console.log(lines.join(LINE_BREAK))
+    // logger.info(`lines[${line_number}] = ${lines[line_number]}`)
     // in next iteration with the same line_number, the macro
     // expansion will be inline to be evaluated like a regular instruction
   }
 
   return injection
 }
+
 async function evalSnippetInjection(content, params, profile, log) {
   // console.dir(params)
   // process.exit()
   let hasSnippetInjection = false
-  let LINE_FEED = _.get(params, ["LINE_FEED"])
+  let LINE_BREAK = _.get(params, ["LINE_BREAK"])
+
+  
+
+  const CURRENT_DIR =  _.get(params, ["CURRENT_DIR"])
 
   // const OUT_DIR = _.get(profile, "OUT_DIR")
   // console.log(content)
@@ -158,6 +167,7 @@ async function evalSnippetInjection(content, params, profile, log) {
         `${markerPrefix}$${markerLabel}[:${macroExpansion}`
     )
 
+
     if (injection && injection.macroExpansion) {
       continue
     }
@@ -176,6 +186,8 @@ async function evalSnippetInjection(content, params, profile, log) {
           `${markerPrefix}$${markerLabel}!:${macroExpansion}`
       )
     }
+
+
 
     if (injection && injection.macroExpansion) {
       continue
@@ -204,6 +216,10 @@ async function evalSnippetInjection(content, params, profile, log) {
         // process.exit()
         // const CONTENT = _.get(injection_params, ["CONTENT"])
         const CURRENT_TIME = _.get(injection.params, ["CURRENT_TIME"])
+        // if (CURRENT_TIME) {
+        //   console.dir(injection)
+        //   throw new Error()
+        // }
         // const FILTERS = _.get(injection_params, ["CURRENT_TIME"])
         if (common.isOnlyOneDefined([FILE, CURRENT_TIME])) {
           throw new Error(
@@ -214,27 +230,42 @@ async function evalSnippetInjection(content, params, profile, log) {
         let template
 
         if (!_.isUndefined(FILE)) {
+          // console.dir(params)
+          
+          // console.log(FILE)
+          // if (common.isLocalFilePath(FILE)) {
+            
+          //   FILE = path.posix.join(CURRENT_DIR, FILE)
+
+          //   console.log("is local file")
+          //   console.dir(params)
+          //   console.log(FILE)
+          // }
+          // console.log(CURRENT_DIR)
+          // console.log(FILE)
           // if (FILE.startsWith("@")) {
           //   FILE = FILE.substring(1)
           // } else {
           //   FILE = path.join(OUT_DIR, FILE)
           // }
 
-          log.info(`${chalk.blueBright(`insert file`)} ${chalk.gray(FILE)}`)
-          // log.info(colorize(injection_params))
+          logger.info(`${chalk.blueBright(`insert file`)} ${chalk.gray(FILE)}`)
+          // logger.info(colorize(injection_params))
 
           const templateString = fs.readFileSync(FILE, "utf8")
           // TODO: make reusable function for making snippet
-          template = templateString.split(LINE_FEED)
+          template = templateString.split(LINE_BREAK)
         }
 
         // if (!_.isUndefined(CONTENT)) {
-        //   template = CONTENT.split(LINE_FEED)
+        //   template = CONTENT.split(LINE_BREAK)
         // }
 
         if (!_.isUndefined(CURRENT_TIME)) {
           // console.log(CURRENT_TIME)
           template = [DateTime.now().toFormat(CURRENT_TIME)]
+          // console.dir(injection.params)
+          // throw new Error()
           // console.log(template)
         }
 
@@ -258,7 +289,7 @@ async function evalSnippetInjection(content, params, profile, log) {
         // console.dir(injection)
         // const snippet_name = _.get(matched, "[1]", "").trim()
 
-        log.info(
+        logger.info(
           `${chalk.cyan(
             `load snippet ${chalk.blue(`[${injection.command}]`)}`
           )}`
@@ -272,6 +303,7 @@ async function evalSnippetInjection(content, params, profile, log) {
           )
         }
       }
+
       let content = ""
       let context = _.merge({}, params, injection.args)
       // console.dir({ context })
@@ -279,7 +311,7 @@ async function evalSnippetInjection(content, params, profile, log) {
         let evaluatedContent
         let data = context.INPUT
         do {
-          log.info(
+          logger.info(
             `${chalk.cyan(
               `try evaluate nested snippet injections`
             )}`
@@ -297,12 +329,19 @@ async function evalSnippetInjection(content, params, profile, log) {
             log
           ) // TODO: use common.profile and logger
           // console.dir({ evaluatedContent })
+          
 
           data = evaluatedContent.data
+          // console.log(data)
+          // throw new Error(data)
+
 
           // process.exit()
           // context.INPUT = evaluatedContent.data
         } while (evaluatedContent.hasSnippetInjection)
+
+
+
 
         // console.log(context.INPUT)
         // process.exit()
@@ -324,7 +363,7 @@ async function evalSnippetInjection(content, params, profile, log) {
       // console.log(content)
       //   let FILTERS = _.get(injection_params, ["FILTERS"], [])
 
-      //   // log.info(`${colorize(FILTERS, { pretty: true })}`)
+      //   // logger.info(`${colorize(FILTERS, { pretty: true })}`)
 
       //   for (let filter of FILTERS) {
       //     for (const [handler, params] of Object.entries(filter)) {
@@ -334,7 +373,7 @@ async function evalSnippetInjection(content, params, profile, log) {
       //         plugins: profile.plugins,
       //         libraries: profile.libraries,
       //         logger: log,
-      //         LINE_FEED,
+      //         LINE_BREAK,
       //         data: rendered,
       //         params,
       //       }
@@ -343,19 +382,31 @@ async function evalSnippetInjection(content, params, profile, log) {
       //     }
       //     // const key = Object.keys(filter)[0]
       //     // const value =
-      //     // log.info(`${Object.keys(filter)[0]}`)
+      //     // logger.info(`${Object.keys(filter)[0]}`)
       //   }
       //   result.push(rendered)
       // }
 
+      if (injection.params.LINE_PREFIX) {
+        content = injection.params.LINE_PREFIX + content
+      }
       result.push(content)
+      // if (content.includes("February")){
+      //   // console.dir(injection)
+      //   throw new Error(content)
+      // } 
 
       line_number = injection.lineNumber
     }
 
     line_number += 1
   }
-  const output = result.join(LINE_FEED)
+  const output = result.join(LINE_BREAK)
+
+  // if (output.includes("February")){
+  //   // console.dir(injection)
+  //   throw new Error(output)
+  // } 
 
   // console.dir(output)
   // process.exit()

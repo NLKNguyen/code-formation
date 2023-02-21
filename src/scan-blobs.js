@@ -4,7 +4,7 @@ const _ = require("lodash")
 const chalk = require("chalk")
 const error = require("./error.js")
 const common = require("./common.js")
-
+const logger = require("./logger.js")
 const source_id = "scan-blobs"
 
 module.exports = async function (files, profile, log) {
@@ -22,7 +22,9 @@ module.exports = async function (files, profile, log) {
       CURRENT_DIR: file.dirname(),
       CURRENT_FILE: file,
       CURRENT_FILE_NAME: file.basename(),
-      CURRENT_FILE_NAME_HASH: file.basename().createHash("shake256", { outputLength: 5 }),
+      CURRENT_FILE_NAME_HASH: file
+        .basename()
+        .createHash("shake256", { outputLength: 5 }),
       CURRENT_FILE_PATH: file,
       CURRENT_FILE_PATH_HASH: file.createHash("shake256", { outputLength: 5 }),
     }
@@ -59,7 +61,7 @@ module.exports = async function (files, profile, log) {
           // const openTag = line.match(regex)
           // const openTag = line.match(/!(\w*)<:(.*)/)
           if (openTag) {
-            log.info(
+            logger.info(
               `${chalk.cyanBright(
                 `scan blob starting on line ${line_number + 1} in`
               )} ${chalk.gray(file)}`
@@ -98,17 +100,17 @@ module.exports = async function (files, profile, log) {
                 _.get(profile, "LINE_PREFIX")
               )
 
-              const LINE_FEED = _.get(
+              const LINE_BREAK = _.get(
                 injection_params,
-                ["LINE_FEED"],
-                profile.LINE_FEED
+                ["LINE_BREAK"],
+                profile.LINE_BREAK
               )
 
               const template_str = snippet.template
                 .map((e) => LINE_PREFIX + e) // TODO: not really needed
-                .join(LINE_FEED)
+                .join(LINE_BREAK)
 
-              // log.info(`template_str = ${template_str}`)
+              // logger.info(`template_str = ${template_str}`)
               const macro = common
                 .renderTemplate(template_str, merged_params)
                 .split(/\r?\n/)
@@ -125,18 +127,18 @@ module.exports = async function (files, profile, log) {
                 hasPreviousTrailingSpace = line.endsWith(" ")
               }
               const expansion = macroLines.join("")
-              // log.info(`expansion = ${expansion}`)
+              // logger.info(`expansion = ${expansion}`)
               lines[line_number] = line.replace(
                 openRegex,
                 () => `${profile.marker_prefix}!${label}<:${expansion}`
               )
-              log.info(
+              logger.info(
                 `${chalk.cyan(
                   `expand macro "@${snippet_name}" into marker:`
                 )} ${chalk.gray(lines[line_number])}`
               )
-              // console.log(lines.join(LINE_FEED))
-              // log.info(`lines[${line_number}] = ${lines[line_number]}`)
+              // console.log(lines.join(LINE_BREAK))
+              // logger.info(`lines[${line_number}] = ${lines[line_number]}`)
               continue // in next iteration with the same line_number, the macro
               // expansion will be inline to be evaluated like a regular instruction
             }
@@ -144,8 +146,20 @@ module.exports = async function (files, profile, log) {
             // console.log(tag)
             // console.log(rest)
             let params = await common.parseParams(rest)
-            
+
             let FILE = _.get(params, ["FILE"], "")
+
+            // console.log(FILE)
+            // console.log(common.isLocalFilePath(FILE))
+            // console.dir(commonParameters)
+            // if (common.isLocalFilePath(FILE)) {
+              
+            //   FILE = './' + path.posix.join(commonParameters.CURRENT_DIR, FILE)
+            //   if (FILE.includes("queue")) throw new Error(FILE)
+            //   // console.log(FILE)
+            //   params.FILE = FILE
+            // }
+
             let ANCHOR = _.get(params, ["ANCHOR"], "")
             let ORDER = _.get(params, ["ORDER"], "")
 
@@ -155,9 +169,9 @@ module.exports = async function (files, profile, log) {
               template.push(line)
             }
 
-            if (!_.includes(["WRITE", "PROCESS", "EMBED"], command)) {
+            if (!_.includes(["WRITE", "PROCESS", "INSERT", "TRANSFORM"], command)) {
               throw new Error(
-                `[${source_id}] Missing WRITE, EMBED, or PROCESS command on ${file}:${
+                `[${source_id}] Missing WRITE, INSERT, or PROCESS command on ${file}:${
                   line_number + 1
                 }: ${line}`
               )
@@ -166,10 +180,10 @@ module.exports = async function (files, profile, log) {
               params.FILE = ""
             }
 
-            if (command === "EMBED") {
+            if (command === "INSERT") {
               if (!label) {
                 throw new Error(
-                  `[${source_id}] missing marker label for EMBED instruction on ${file}:${
+                  `[${source_id}] missing marker label for in-place INSERT instruction on ${file}:${
                     line_number + 1
                   }: ${line}`
                 )
@@ -177,21 +191,33 @@ module.exports = async function (files, profile, log) {
 
               if (!FILE) {
                 throw new Error(
-                  `[${source_id}] missing FILE param for EMBED instruction on ${file}:${
+                  `[${source_id}] missing FILE param for in-place INSERT instruction on ${file}:${
                     line_number + 1
                   }: ${line}`
                 )
               }
-                       
+
               // the content to be inserted is done via the snippet injection
               // marker in this template
-              template = [
-                `$!:INSERT (FILE "${FILE}") (ANCHOR "${ANCHOR}")`
-              ]
+              template = [`$!:INSERT (FILE "${FILE}") (ANCHOR "${ANCHOR}")`]
               // ignore all content within this block because it's supposed to
-              // be replace by the EMBED instruction
+              // be replace by the INSERT instruction
               templateAdder = (template, line) => {}
-              
+
+              // point the blob output to the current file at the current anchor
+              params.FILE = file
+              params.ANCHOR = label
+            }
+
+            if (command === "TRANSFORM") {
+              if (!label) {
+                throw new Error(
+                  `[${source_id}] missing marker label for TRANSFORM instruction on ${file}:${
+                    line_number + 1
+                  }: ${line}`
+                )
+              }
+
               // point the blob output to the current file at the current anchor
               params.FILE = file
               params.ANCHOR = label
@@ -207,9 +233,12 @@ module.exports = async function (files, profile, log) {
               src: file,
               start: line_number,
               end: line_number,
-              template, templateAdder,
+              template,
+              templateAdder,
             }
             // console.dir(new_blob)
+            // console.log(file)
+            // process.exit()
             const tasks = _.get(profile, ["tasks"], [])
             tasks.push(new_blob)
             _.set(profile, ["tasks"], tasks)
@@ -239,6 +268,7 @@ module.exports = async function (files, profile, log) {
         }
         line_number += 1
       } catch (e) {
+        error.message(e, logger)
         throw new Error(
           `[${source_id}] failed to process ${error.message(e, log)}`
         )

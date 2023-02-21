@@ -3,11 +3,11 @@ const fs = require("fs")
 const _ = require("lodash")
 const chalk = require("chalk")
 const colorize = require("json-colorizer")
-const error = require("./error")
-const common = require("./common")
-
+const error = require("./error.js")
+const common = require("./common.js")
+const logger = require("./logger.js")
 module.exports = async function (files, profile, log) {
-  // log.info(chalk.cyanBright("write-output"))
+  // logger.info(chalk.cyanBright("write-output"))
 
   const output = _.get(profile, "output")
   const fileslots = _.keys(output).sort()
@@ -49,7 +49,7 @@ module.exports = async function (files, profile, log) {
       }
     }
 
-    // log.info(data)
+    // logger.info(data)
     if (target_anchor) {
       try {
         const output = []
@@ -99,7 +99,7 @@ module.exports = async function (files, profile, log) {
         const file_content = output.join("\n")
         // console.log(file_content)
         if (!_.isEmpty(output_path)) {
-          log.info(
+          logger.info(
             `${chalk.green(`write output to '${target_anchor}' anchor in`)} ${chalk.gray(
               output_path
             )}`
@@ -114,7 +114,7 @@ module.exports = async function (files, profile, log) {
     } else {
       try {
         if (!_.isEmpty(output_path)) {
-          log.info(`${chalk.greenBright(`write output to`)} ${chalk.gray(output_path)}`)
+          logger.info(`${chalk.greenBright(`write output to`)} ${chalk.gray(output_path)}`)
           common.writeFileSyncRecursive(output_path, data, "utf8")
         }
         // common.writeFileSyncRecursive(output_path, data, "utf8")

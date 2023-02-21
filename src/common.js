@@ -4,6 +4,12 @@ const crypto = require("crypto")
 const SExpr = require("s-expression.js")
 const requireg = require("requireg")
 const { NodeVM, VM, VMScript } = require("vm2")
+const logger = require("./logger")
+const fetch = require("node-fetch")
+
+const marked = require("marked") // Markdown parser
+const cheerio = require("cheerio") // jQuery for Node
+const chalk = require("chalk") // Colorful console log
 
 const profile = {
   marker_prefix: "",
@@ -11,10 +17,10 @@ const profile = {
   snippets: {},
   exports: [],
   // OUT_DIR: outdir,
-  LINE_FEED: "\n", // deprecating
-  NEWLINE: "\n",
+  LINE_BREAK: "\n",
   LINE_PREFIX: "", // can be literal string or number, which is offset indentation from the tag marker
   SECTION_SEPARATOR: "\n",
+  CONTINUOUS_EMPTY_LINES: 1,
   // plugins,
   // libraries: {
   //   common,
@@ -23,6 +29,14 @@ const profile = {
   //   fs,
   //   booleanParser,
   // },
+}
+
+const modules = {
+  fetch,
+  marked,
+  cheerio,
+  chalk,
+  "URLSearchParams": URLSearchParams
 }
 
 invoke = async (snippet, context) => {
@@ -35,9 +49,9 @@ invoke = async (snippet, context) => {
   //   )
   // }
   const LANGUAGE = _.get(context, "LANGUAGE")
-  const LINE_FEED = _.get(context, "LINE_FEED")
+  const LINE_BREAK = _.get(context, "LINE_BREAK")
 
-  const template = snippet.template.join(LINE_FEED)
+  const template = snippet.template.join(LINE_BREAK)
 
   let result = ""
   if (LANGUAGE == "ejs") {
@@ -52,6 +66,9 @@ invoke = async (snippet, context) => {
     // process.exit()
   } else if (LANGUAGE === "nodejs") {
     let script = _.get(snippet, ["custom", "precompiled"])
+
+    // console.dir({ template })
+    // process.exit()
     if (!script) {
       script = new VMScript(template).compile()
       _.set(snippet, ["custom", "precompiled"], script) // cache to avoid recompiling
@@ -68,7 +85,9 @@ invoke = async (snippet, context) => {
       sandbox: {
         ...context,
         requireg,
-        common: module.exports,
+        _common: module.exports /* this same module */,
+        _logger: logger,
+        _: _        
       },
     })
     const func = vm.run(script)
@@ -126,14 +145,48 @@ async function parseParams(str) {
   //   },
   // }
 
+  // S.defaults[S.ROOT] = {
+  //   evaluate: async (data, context, state, entity) => {
+  //     const result = _.merge({}, ...data)
+  //     // console.dir(result)
+  //     return result
+  //   },
+  // }
+
   return await S.interpret(S.parse(`(${str})`), {
     handlers: {
-      FILTERS: {
+      APPLY: {
+        evaluate: async (components, context, state, entity) => {
+          return { [entity]: components }
+        },
         handlers: {
           [S.FUNCTION]: {
-            evaluate: async (data, context, state, entity) => {
-              return { [entity]: data }
+            evaluate: async (components, context, state, entity) => {
+              const params = _.merge({}, ...components)
+              // console.dir({params})
+              // console.dir({ [entity]: params })
+
+              // for(let component of data) {
+              //   let key = Object.keys(component)[0]
+              //   let value = component[key]
+              //   console.dir({key, value})
+
+              //   console.dir({key, params})
+              // }
+              // console.dir({ [entity]: params })
+              // process.exit()
+              return { [entity]: params }
+              // return { [entity]: data }
             },
+            // handlers: {
+            //   [S.FUNCTION]: {
+            //     evaluate: async (data, context, state, entity) => {
+            //       console.dir({ [entity]: data[0] })
+            //       process.exit()
+            //       return { [entity]: data }
+            //     },
+            //   },
+            // },
           },
         },
         // defaults: filtersDefaults,
@@ -260,8 +313,19 @@ function hasTemplateInstruction(profile, line) {
   return false
 }
 
+/**
+ * Check if a path is a local file path, meaning that not have prefix . nor absolute path
+ * @param {string} path to check if it's a local file path
+ * @returns 
+ */
+function isLocalFilePath(path) {
+  return path && !/(^\.\/)|(^\.\\)|(^\/)|(^[^:\s]+:)/.test(path)
+}
+
 module.exports = {
+  modules,
   profile,
+  logger,
   invoke,
   parseParams,
   serializeMacro,
@@ -271,4 +335,5 @@ module.exports = {
   writeFileSyncRecursive,
   isOnlyOneDefined,
   hasTemplateInstruction,
+  isLocalFilePath
 }

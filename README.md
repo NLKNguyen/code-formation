@@ -208,7 +208,7 @@ It's probably best to explain at this early stage by walking through examples th
 
 **Solution:**
 
-```
+```shell
 code-formation --scan ./examples/01_sql_migration_from_scripts/input/* --outdir ./examples/01_sql_migration_from_scripts/output/
 ```
 
@@ -330,7 +330,7 @@ $>
 ![image](https://user-images.githubusercontent.com/4667129/199942846-3ec7ae49-a701-49ae-bccc-0ba53e0b8f2d.png)
 
 **Note:** on the snippet tag (definition or injection), you can override any of the default configurations: 
-+ `(LINE_FEED "\n")` for the new line character between the lines of the output
++ `(LINE_BREAK "\n")` for the new line character between the lines of the output
 + `(LINE_PREFIX "")` for the prefix on every line of the output, which is useful for indentation.
 + `(CONTINUOUS_EMPTY_LINES 1)` for a post-process formatting to remove unwanted continuous empty lines above this threshold
 
@@ -492,7 +492,7 @@ Here are 2 options that achieve the same result.
 
 The below command will bring content from `subquery_1.sql` into `main_query_1.sql` at a specific section (indicated by the anchor guard syntax `!ANCHOR_NAME<` and `!ANCHOR_NAME>`)
 
-```
+```shell
 code-formation --scan ./examples/02_sql_subquery_from_separate_scripts/subquery_1.sql
 ```
 
@@ -551,7 +551,7 @@ WHERE
 
 The below command will bring content from `subquery_2.sql` into `main_query_2.sql` at a specific section (indicated by the anchor guard syntax `!ANCHOR_NAME<` and `!ANCHOR_NAME>`)
 
-```
+```shell
 code-formation --scan ./examples/02_sql_subquery_from_separate_scripts/main_query_2.sql
 ```
 
@@ -577,7 +577,7 @@ FROM
 WHERE
   BusinessEntityID NOT IN (
     -- The content of subquery_2.sql will be loaded into the anchor below
-    -- !subquery<:EMBED (FILE "<%= CURRENT_DIR %>/subquery_2.sql") (LINE_PREFIX "    ")
+    -- !subquery<:INSERT (FILE "<%= CURRENT_DIR %>/subquery_2.sql") (LINE_PREFIX "    ")
     -- !subquery>
   );
 ```
@@ -593,7 +593,7 @@ FROM
 WHERE
   BusinessEntityID NOT IN (
     -- The content of subquery_2.sql will be loaded into the anchor below
-    -- !subquery<:EMBED (FILE "<%= CURRENT_DIR %>/subquery_2.sql") (LINE_PREFIX "    ")
+    -- !subquery<:INSERT (FILE "<%= CURRENT_DIR %>/subquery_2.sql") (LINE_PREFIX "    ")
     SELECT
       CustomerID
     FROM

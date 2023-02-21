@@ -1,8 +1,0 @@
-The line below is a shorthand for `!<:WRITE FILE="<%= CURRENT_FILE %>" ANCHOR="A"`
-
-!<:WRITE INTO="A"
-$!:INSERT FILE="<%= CURRENT_DIR %>/some_external_file.txt"
-!>
-@<:A
-content from some_external_file.txt
-@>
