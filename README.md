@@ -653,7 +653,7 @@ I try to respond to users' feedback and feature requests as much as possible. Th
 
 # 📝 License
 
-Copyright © 2022 [Nikyle Nguyen](https://github.com/NLKNguyen)
+Copyright © 2023 [Nikyle Nguyen](https://github.com/NLKNguyen)
 
 The project is [MIT License](https://github.com/NLKNguyen/code-formation/blob/master/LICENSE).
 

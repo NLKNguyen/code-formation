@@ -64,15 +64,19 @@ const logger = require("./logger.js")
       // TODO: --definitions <file> for dotenv file
     ])
 
-    // if (!outdir) {
-    //   throw new Error("Missing input argument --outdir")
-    // }
+    scan = [".code-formation/**", ...scan.split(",").map((e) => e.trim())]
 
-    if (!scan) {
-      throw new Error("Missing input argument --scan")
+    let sourceFiles = []
+    for (let p of glob.sync(scan)) {
+      if (fs.lstatSync(p).isDirectory()) {
+        glob
+          .sync([`${p}/.code-formation/**`])
+          .filter((e) => fs.lstatSync(e).isFile())
+          .forEach((e) => sourceFiles.push(e))
+      } else {
+        sourceFiles.push(p)
+      }
     }
-    // TODO: maybe default to current dir
-    scan = [".code-formation/**/*", ...scan.split(",").map((e) => e.trim())]
 
     if (!_.isUndefined(define)) {
       try {
@@ -82,7 +86,7 @@ const logger = require("./logger.js")
       }
     }
 
-    let sourceFiles = glob.sync(scan, { nodir: true })
+    // let sourceFiles = glob.sync(scan, { nodir: true })
     logger.info(
       `${chalk.gray(`scanning files:`)} ${colorize(sourceFiles, {
         pretty: true,
@@ -131,7 +135,7 @@ const logger = require("./logger.js")
     // logger.info(colorize({ outdir, scan }))
   } catch (e) {
     // logger.info()
-    
+
     // logger.error(chalk.red(e))
     error.message(e, logger)
     // console.error(e)

@@ -31,6 +31,7 @@ const outdir = {
 const scan = {
   pattern: "-s, --scan <file patterns>",
   description: "glob file patterns to be scanned, separated by semi-colon ;",
+  default: []
 }
 
 const define = {

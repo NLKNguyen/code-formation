@@ -1,20 +1,17 @@
 {
   "name": "code-formation",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "context-free text manipulator using line-oriented DSL for easy embedding to existing source code",
   "main": "./src/index.js",
+  "bin": "./src/index.js",
   "files": [
     "src",
     "README.md",
     "LICENSE"
   ],
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "bin": "./src/index.js",
+  },  
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NLKNguyen/code-formation.git"
