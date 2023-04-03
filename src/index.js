@@ -60,11 +60,11 @@ const logger = require("./logger.js")
     let { outdir, scan, define } = Options.read([
       Options.outdir,
       Options.scan,
-      Options.define,
+      // Options.define,
       // TODO: --definitions <file> for dotenv file
     ])
 
-    scan = [".code-formation/**", ...scan.split(",").map((e) => e.trim())]
+    scan = [".code-formation/**", ...scan.split(",").map((e) => e.trim())].filter(Boolean)    
 
     let sourceFiles = []
     for (let p of glob.sync(scan)) {
@@ -78,13 +78,13 @@ const logger = require("./logger.js")
       }
     }
 
-    if (!_.isUndefined(define)) {
-      try {
-        define = parsePairs.default(define)
-      } catch (e) {
-        throw new Error("Invalid format --define")
-      }
-    }
+    // if (!_.isUndefined(define)) {      
+    //   try {
+    //     define = parsePairs.default(define)
+    //   } catch (e) {
+    //     throw new Error("Invalid format --define")
+    //   }
+    // }
 
     // let sourceFiles = glob.sync(scan, { nodir: true })
     logger.info(
@@ -93,9 +93,9 @@ const logger = require("./logger.js")
       })}`
     )
 
-    if (!_.isUndefined(define)) {
-      common.profile.variables = define
-    }
+    // if (!_.isUndefined(define)) {
+    //   common.profile.variables = define
+    // }
     // logger.info(
     //   colorize(profile, {
     //     pretty: true,

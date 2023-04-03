@@ -81,6 +81,8 @@ invoke = async (snippet, context) => {
         root: "./",
         builtin: ["*"],
       },
+      env: process.env,
+      // argv: process.argv,
       // wrapper: false,
       sandbox: {
         ...context,

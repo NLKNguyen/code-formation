@@ -213,7 +213,7 @@ module.exports = async function (files, profile, log) {
       let postprocess = formatted_text
 
       const APPLY = _.get(params, ["APPLY"], [])
-      // console.dir(APPLY)
+      // logger.verbose(JSON.stringify(APPLY))
 
       // process.exit()
       for (let action of APPLY) {
@@ -221,6 +221,8 @@ module.exports = async function (files, profile, log) {
         const key = Object.keys(action)[0]
         const value = action[key]
         // console.dir({key, value})
+
+        // TODO: check if key starts with @ to expand macro, no need for nested macro
 
         const snippetName = key
         const snippetInjectionParams = value

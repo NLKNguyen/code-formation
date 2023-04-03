@@ -1,0 +1,4 @@
+class BankAccount
+class InterestEarningAccount extends BankAccount
+class LineOfCreditAccount extends BankAccount
+class GiftCardAccount extends BankAccount

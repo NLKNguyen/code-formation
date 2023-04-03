@@ -400,6 +400,7 @@ async function evalSnippetInjection(content, params, profile, log) {
     }
 
     line_number += 1
+    // logger.verbose(`line_number: ${line_number}`)
   }
   const output = result.join(LINE_BREAK)
 

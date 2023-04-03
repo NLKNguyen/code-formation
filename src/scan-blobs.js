@@ -17,6 +17,7 @@ module.exports = async function (files, profile, log) {
     let focused_entity_start_line = 0
     let commonParameters = {
       ...profile.variables,
+      ENV: process.env,
       OUT_DIR: profile.OUT_DIR,
       CONTEXT_DIR: ".",
       CURRENT_DIR: file.dirname(),
