@@ -5,6 +5,7 @@ const chalk = require("chalk")
 const error = require("./error.js")
 const common = require("./common.js")
 const logger = require("./logger.js")
+const colorize = require("json-colorizer")
 const source_id = "scan-blobs"
 
 module.exports = async function (files, profile, log) {
@@ -131,7 +132,7 @@ module.exports = async function (files, profile, log) {
               // logger.info(`expansion = ${expansion}`)
               lines[line_number] = line.replace(
                 openRegex,
-                () => `${profile.MARKER_PREFIX}!${label}<:${expansion}`
+                () => `${profile.MARKER_PREFIX}!${label}<:${expansion} `
               )
               logger.info(
                 `${chalk.cyan(
@@ -275,5 +276,8 @@ module.exports = async function (files, profile, log) {
         )
       }
     }
+
+    // logger.info(colorize(focused_entity, {pretty: true}))
+    // process.exit()
   }
 }

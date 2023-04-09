@@ -50,7 +50,7 @@ invoke = async (snippet, context) => {
   // }
   const LANGUAGE = _.get(context, "LANGUAGE")
   const LINE_BREAK = _.get(context, "LINE_BREAK")
-
+  // console.dir({template: snippet.template, LANGUAGE, LINE_BREAK})
   const template = snippet.template.join(LINE_BREAK)
 
   let result = ""
@@ -104,7 +104,10 @@ invoke = async (snippet, context) => {
 }
 function serializeMacro(macro) {
   const S = new SExpr()
-  return S.serialize(S.parse(macro), { rootBrackets: false })
+  const ast = S.parse(macro, { includedRootParentheses: false })
+  console.dir(ast)
+  process.exit()
+  return S.serialize(ast, { includingRootParentheses: false })
 }
 async function parseParams(str) {
   const S = new SExpr()

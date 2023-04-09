@@ -1,6 +1,6 @@
 {
   "name": "code-formation",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "context-free text manipulator using line-oriented DSL for easy embedding to existing source code",
   "main": "./src/index.js",
   "bin": "./src/index.js",
@@ -41,7 +41,7 @@
     "parse-pairs": "^1.1.0",
     "query-string": "^7.1.1",
     "requireg": "^0.2.2",
-    "s-expression.js": "^0.6.2",
+    "s-expression.js": "^0.6.4",
     "vm2": "^3.9.11",
     "wildcard-match": "^5.1.2",
     "winston": "^3.6.0"

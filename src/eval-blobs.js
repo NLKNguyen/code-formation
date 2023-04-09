@@ -220,7 +220,9 @@ module.exports = async function (files, profile, log) {
         // let {key, value} = S.ExtractEntry(action)
         const key = Object.keys(action)[0]
         const value = action[key]
-        // console.dir({key, value})
+        // console.dir({APPLY, action, key, value})
+        // logger.info(colorize(params, {pretty: true}))
+        // process.exit()
 
         // TODO: check if key starts with @ to expand macro, no need for nested macro
 
@@ -351,8 +353,8 @@ module.exports = async function (files, profile, log) {
           SECTION_SEPARATOR,
         },
         // separator: SECTION_SEPARATOR,
-      })
-      _.set(profile, outpath, destination)
+      })      
+      _.set(profile, outpath, destination)      
       // console.log(destination)
 
       // _.set(profile, ['content', 'a'], output)

@@ -54,7 +54,7 @@ module.exports = async function (files, profile, log) {
           )
           let rest = _.get(openTag, "[3]", "").trim()
 
-          console.dir(rest)
+          // console.dir(rest)
           let params = await common.parseParams(rest)
           // console.dir({params})
           // process.exit()

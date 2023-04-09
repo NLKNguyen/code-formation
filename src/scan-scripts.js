@@ -53,7 +53,7 @@ module.exports = async function (files, profile, log) {
             //   `${chalk.cyan(`define variable`)} ${chalk.green(
             //     name
             //   )} ${chalk.cyan(`as`)} ${chalk.green(JSON.stringify(value))} `
-            // )
+            // )            
             _.set(profile, name, value)
             return true // not needed
           },
@@ -92,11 +92,6 @@ module.exports = async function (files, profile, log) {
             let params = await common.parseParams(rest)
 
             logger.info(`${chalk.cyan(`defined macro`)} ${chalk.green(name)}`)
-            // console.dir({
-            //   name,
-            //   params,
-            //   expansion,
-            // })
 
             let LANGUAGE = _.get(params, "LANGUAGE", "ejs")
             _.set(params, "LANGUAGE", LANGUAGE)
@@ -112,6 +107,7 @@ module.exports = async function (files, profile, log) {
               custom: {},
             }
 
+            // logger.info(colorize(new_snippet, { pretty: true }))
             _.set(profile, ["snippets", name], new_snippet)
 
             return true // not needed
