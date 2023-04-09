@@ -38,13 +38,13 @@ module.exports = async function (files, profile, log) {
           let openTag
           let doneInterpolation = false
           // let openRegex = new RegExp(
-          //   `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
+          //   `(?<!\`)${profile.MARKER_PREFIX}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
           // )
           let openRegex = new RegExp(
-            `(?<!\`)${profile.marker_prefix}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?\\s*(\\(.*\\))?`
+            `(?<!\`)${profile.MARKER_PREFIX}!([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)?\\s*(\\(.*\\))?`
           )
           // const regex = new RegExp(
-          //   `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)<:([@A-Za-z0-9_]+)\\s*(\\(.*\\))?`
+          //   `(?<!\`)${profile.MARKER_PREFIX}\\$([A-Za-z0-9_]*)<:([@A-Za-z0-9_]+)\\s*(\\(.*\\))?`
           // )
           while (true) {
             openTag = openRegex.exec(line)
@@ -131,7 +131,7 @@ module.exports = async function (files, profile, log) {
               // logger.info(`expansion = ${expansion}`)
               lines[line_number] = line.replace(
                 openRegex,
-                () => `${profile.marker_prefix}!${label}<:${expansion}`
+                () => `${profile.MARKER_PREFIX}!${label}<:${expansion}`
               )
               logger.info(
                 `${chalk.cyan(
@@ -252,7 +252,7 @@ module.exports = async function (files, profile, log) {
 
           // const regex = new RegExp(`${focused_entity.tag}>!(.*)`, "g")
           const regex = new RegExp(
-            `(?<!\`)${profile.marker_prefix}!${focused_entity.tag}>`
+            `(?<!\`)${profile.MARKER_PREFIX}!${focused_entity.tag}>`
           )
           const closeTag = line.match(regex)
           if (closeTag) {

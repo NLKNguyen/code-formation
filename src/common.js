@@ -12,7 +12,7 @@ const cheerio = require("cheerio") // jQuery for Node
 const chalk = require("chalk") // Colorful console log
 
 const profile = {
-  marker_prefix: "",
+  MARKER_PREFIX: "",
   variables: {},
   snippets: {},
   exports: [],
@@ -36,7 +36,7 @@ const modules = {
   marked,
   cheerio,
   chalk,
-  "URLSearchParams": URLSearchParams
+  URLSearchParams: URLSearchParams,
 }
 
 invoke = async (snippet, context) => {
@@ -89,7 +89,7 @@ invoke = async (snippet, context) => {
         requireg,
         _common: module.exports /* this same module */,
         _logger: logger,
-        _: _        
+        _: _,
       },
     })
     const func = vm.run(script)
@@ -155,7 +155,7 @@ async function parseParams(str) {
   //   },
   // }
 
-  return await S.interpret(S.parse(`(${str})`), {
+  return await S.interpret(S.parse(str, { includedRootParentheses: false }), {
     handlers: {
       APPLY: {
         evaluate: async (components, context, state, entity) => {
@@ -284,7 +284,7 @@ function hasTemplateInstruction(profile, line) {
   // TODO: snippet block
   // TODO: anchor block
   const snippetOpenRegex = new RegExp(
-    `(?<!\`)${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
+    `(?<!\`)${profile.MARKER_PREFIX}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
   )
 
   if (snippetOpenRegex.exec(line)) {
@@ -292,21 +292,21 @@ function hasTemplateInstruction(profile, line) {
   }
 
   const snippetCloseRegex = new RegExp(
-    `(?<!\`)${profile.marker_prefix}\\$(\\w*)>`
+    `(?<!\`)${profile.MARKER_PREFIX}\\$(\\w*)>`
   )
   if (snippetCloseRegex.exec(line)) {
     return true
   }
 
   const blobOpenRegex = new RegExp(
-    `(?<!\`)${profile.marker_prefix}!(\\w*)<:(.*)`
+    `(?<!\`)${profile.MARKER_PREFIX}!(\\w*)<:(.*)`
   )
 
   if (blobOpenRegex.exec(line)) {
     return true
   }
 
-  const blobCloseRegex = new RegExp(`(?<!\`)${profile.marker_prefix}!(\\w*)>`)
+  const blobCloseRegex = new RegExp(`(?<!\`)${profile.MARKER_PREFIX}!(\\w*)>`)
 
   if (blobCloseRegex.exec(line)) {
     return true
@@ -318,7 +318,7 @@ function hasTemplateInstruction(profile, line) {
 /**
  * Check if a path is a local file path, meaning that not have prefix . nor absolute path
  * @param {string} path to check if it's a local file path
- * @returns 
+ * @returns
  */
 function isLocalFilePath(path) {
   return path && !/(^\.\/)|(^\.\\)|(^\/)|(^[^:\s]+:)/.test(path)
@@ -337,5 +337,5 @@ module.exports = {
   writeFileSyncRecursive,
   isOnlyOneDefined,
   hasTemplateInstruction,
-  isLocalFilePath
+  isLocalFilePath,
 }

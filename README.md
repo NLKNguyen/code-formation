@@ -100,6 +100,22 @@ If you want to uninstall:
 npm rm -g code-formation
 ```
 
+<!-- 
+# Publish
+
+```shell
+npm publish --access public
+```
+
+# Mark release tag
+
+Use IDE to mark tag. Then push to repos:
+
+```shell
+git push origin {tag_name}
+```
+-->
+
 # 📝 Command Line Interface Usage
 
 **code-formation** --scan *[file glob patterns]* --outdir *[base path for output files]*

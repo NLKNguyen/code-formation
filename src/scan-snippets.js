@@ -24,16 +24,16 @@ module.exports = async function (files, profile, log) {
       const line = lines[line_index]
       if (_.isUndefined(focused_entity)) {
         // const regex = new RegExp(
-        //   `(?<!\`)${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
+        //   `(?<!\`)${profile.MARKER_PREFIX}\\$(\\w*)<:([A-Za-z0-9_]+)(.*)`
         // )
 
         // const regex = new RegExp(
-        //   `(?<!\`)${profile.marker_prefix}\\$(\\w*)<:([A-Za-z0-9_]+)(\\s*\\(.*\\))`
+        //   `(?<!\`)${profile.MARKER_PREFIX}\\$(\\w*)<:([A-Za-z0-9_]+)(\\s*\\(.*\\))`
         // )
 
         // const openTag = line.match(/\$(\w*)<:([A-Za-z0-9_]+)(.*)/);
         const regex = new RegExp(
-          `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)\\s*(\\(.*\\))?`
+          `(?<!\`)${profile.MARKER_PREFIX}\\$([A-Za-z0-9_]*)<:\\s*([@A-Za-z0-9_]+)\\s*(\\(.*\\))?`
         )
 
         const openTag = line.match(regex)
@@ -54,6 +54,7 @@ module.exports = async function (files, profile, log) {
           )
           let rest = _.get(openTag, "[3]", "").trim()
 
+          console.dir(rest)
           let params = await common.parseParams(rest)
           // console.dir({params})
           // process.exit()
@@ -117,7 +118,7 @@ module.exports = async function (files, profile, log) {
         focused_entity.end += 1
 
         const regex = new RegExp(
-          `(?<!\`)${profile.marker_prefix}\\$${focused_entity.tag}>`
+          `(?<!\`)${profile.MARKER_PREFIX}\\$${focused_entity.tag}>`
         )
         const closeTag = line.match(regex)
         if (closeTag) {

@@ -32,7 +32,7 @@ async function evalBlock(
 
   let line = lines[injection.lineNumber]
 
-  let openRegex = openRegexCallback(common.profile.marker_prefix)
+  let openRegex = openRegexCallback(common.profile.MARKER_PREFIX)
   let matched = openRegex.exec(line)
   if (!matched) {
     return null
@@ -48,7 +48,7 @@ async function evalBlock(
   // console.log(`injection.command = '${injection.command}'`)
   // console.log(`injection.snippetInjection = ${injection.snippetInjection}`)
   if (closeRegexCallback) {
-    const closeRegex = closeRegexCallback(common.profile.marker_prefix, label)
+    const closeRegex = closeRegexCallback(common.profile.MARKER_PREFIX, label)
 
     injection.lineNumber = line_number
     while (++injection.lineNumber < lines.length) {
@@ -95,7 +95,7 @@ async function evalBlock(
     const expansion = common.serializeMacro(`(${macro})`)
 
     lines[line_number] = line.replace(openRegex, () => {
-      return macroExpansionCallback(common.profile.marker_prefix, label, expansion)
+      return macroExpansionCallback(common.profile.MARKER_PREFIX, label, expansion)
     })
     logger.info(
       `${chalk.cyan(`expand macro "@${snippet_name}":`)} ${chalk.gray(
@@ -133,15 +133,15 @@ async function evalSnippetInjection(content, params, profile, log) {
   const result = []
 
   // const blockSnippetOpenRegex = new RegExp(
-  //   `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)\\[:([@A-Za-z0-9_]+)(\\s*\\(.*\\))?`
+  //   `(?<!\`)${profile.MARKER_PREFIX}\\$([A-Za-z0-9_]*)\\[:([@A-Za-z0-9_]+)(\\s*\\(.*\\))?`
   // )
 
   // // const inlineSnippetRegex = new RegExp(
-  // //   `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)!:([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
+  // //   `(?<!\`)${profile.MARKER_PREFIX}\\$([A-Za-z0-9_]*)!:([@A-Za-z0-9_]+)(\\s+[A-Za-z0-9_]+\\s*=\\s*\".*\")?`
   // // ) // TODO: accept optional label and include that in the macro expansion
 
   // const inlineSnippetRegex = new RegExp(
-  //   `(?<!\`)${profile.marker_prefix}\\$([A-Za-z0-9_]*)!:([@A-Za-z0-9_]+)(\\s*\\(.*\\))?`
+  //   `(?<!\`)${profile.MARKER_PREFIX}\\$([A-Za-z0-9_]*)!:([@A-Za-z0-9_]+)(\\s*\\(.*\\))?`
   // )
 
   while (line_number < lines.length) {

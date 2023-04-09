@@ -14,6 +14,9 @@ const booleanParser = require("boolean")
 // const ora = require("ora")
 // const xmlescape = require('xml-escape');
 
+const wcmatch = require("wildcard-match")
+
+const scan_scripts = require("./scan-scripts.js")
 const scan_snippets = require("./scan-snippets.js")
 const scan_blobs = require("./scan-blobs.js")
 // const scan_slots = require("./scan-slots.js")
@@ -64,7 +67,10 @@ const logger = require("./logger.js")
       // TODO: --definitions <file> for dotenv file
     ])
 
-    scan = [".code-formation/**", ...scan.split(",").map((e) => e.trim())].filter(Boolean)    
+    scan = [
+      ".code-formation/**",
+      ...scan.split(",").map((e) => e.trim()),
+    ].filter(Boolean)
 
     let sourceFiles = []
     for (let p of glob.sync(scan)) {
@@ -78,7 +84,7 @@ const logger = require("./logger.js")
       }
     }
 
-    // if (!_.isUndefined(define)) {      
+    // if (!_.isUndefined(define)) {
     //   try {
     //     define = parsePairs.default(define)
     //   } catch (e) {
@@ -92,6 +98,19 @@ const logger = require("./logger.js")
         pretty: true,
       })}`
     )
+
+    const isCflFile = wcmatch("**/.code-formation/*.cfl")
+
+    const cflFiles = sourceFiles.filter(isCflFile)
+
+    if (cflFiles.length > 0) {
+      logger.info(
+        `${chalk.gray(`detected CFL scripts:`)} ${colorize(cflFiles, {
+          pretty: true,
+        })}`
+      )
+      await scan_scripts(cflFiles, common.profile, logger)
+    }
 
     // if (!_.isUndefined(define)) {
     //   common.profile.variables = define

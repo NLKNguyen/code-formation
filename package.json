@@ -1,6 +1,6 @@
 {
   "name": "code-formation",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "context-free text manipulator using line-oriented DSL for easy embedding to existing source code",
   "main": "./src/index.js",
   "bin": "./src/index.js",
@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },  
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NLKNguyen/code-formation.git"
@@ -41,8 +41,9 @@
     "parse-pairs": "^1.1.0",
     "query-string": "^7.1.1",
     "requireg": "^0.2.2",
-    "s-expression.js": "^0.4.0",
+    "s-expression.js": "^0.6.2",
     "vm2": "^3.9.11",
+    "wildcard-match": "^5.1.2",
     "winston": "^3.6.0"
   },
   "keywords": [
