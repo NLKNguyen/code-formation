@@ -44,7 +44,7 @@ module.exports = async function (files, profile, log) {
               `${chalk.cyan(`defined variable`)} ${chalk.green(name)}`
             )
 
-            if (_.includes(["variables", "snippets", "exports"], name)) {
+            if (_.includes(["variables", "snippets", "exports", "tasks"], name)) {
               throw Error("can't use reserved name")
             }
             const value = S.valueOf(S.second(components))

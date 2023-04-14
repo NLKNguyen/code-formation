@@ -1,6 +1,6 @@
 {
   "name": "code-formation",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "context-free text manipulator using line-oriented DSL for easy embedding to existing source code",
   "main": "./src/index.js",
   "bin": "./src/index.js",

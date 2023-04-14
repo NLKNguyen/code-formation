@@ -96,7 +96,7 @@ module.exports = async function (files, profile, log) {
           line_index += 1
         }
 
-        const file_content = output.join("\n")
+        const file_content = output.join(common.profile.LINE_BREAK)
         // console.log(file_content)
         if (!_.isEmpty(output_path)) {
           logger.info(
