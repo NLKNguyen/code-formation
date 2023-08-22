@@ -30,7 +30,13 @@ const outdir = {
 
 const scan = {
   pattern: "-s, --scan <file patterns>",
-  description: "glob file patterns to be scanned, separated by semi-colon ;",
+  description: "glob file patterns to be scanned, separated by commas ','",
+  default: ""
+}
+
+const exclude = {
+  pattern: "-e, --exclude <file patterns>",
+  description: "glob file patterns to be ignored, separated by commas ','",
   default: ""
 }
 
@@ -43,6 +49,7 @@ const define = {
 module.exports = {
   read,
   scan,
+  exclude,
   outdir,
   define
 }

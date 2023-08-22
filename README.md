@@ -118,10 +118,12 @@ git push origin {tag_name}
 
 # 📝 Command Line Interface Usage
 
-**code-formation** --scan *[file glob patterns]* --outdir *[base path for output files]*
+**code-formation** --scan *[file glob patterns]*  --exclude *[file glob patterns]*  --outdir *[base path for output files]*
 
 
-`--scan`: required list of file glob patterns separated by semicolon ";". It's possible to specify ignore and inverse ignore patterns just like .gitignore syntax.
+`--scan`: required list of file glob patterns to include, separated by commas ","
+
+`--exclude`: optional list of file glob patterns to exclude, separated by commas ","
 
 `--outdir`: optional base output path for the output files, if any; some use cases only affect the input files and don't generate output files.
 

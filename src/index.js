@@ -60,9 +60,10 @@ const logger = require("./logger.js")
 // console.log('<xml>'.escapeXML('abc'))
 ;(async function () {
   try {
-    let { outdir, scan, define } = Options.read([
+    let { outdir, scan, exclude, define } = Options.read([
       Options.outdir,
       Options.scan,
+      Options.exclude
       // Options.define,
       // TODO: --definitions <file> for dotenv file
     ])
@@ -72,11 +73,13 @@ const logger = require("./logger.js")
       ...scan.split(",").map((e) => e.trim()),
     ].filter(Boolean)
 
+    exclude = exclude.split(",").map((e) => e.trim()).filter(Boolean)
+
     let sourceFiles = []
-    for (let p of glob.sync(scan)) {
+    for (let p of glob.sync(scan, { ignore: exclude })) {
       if (fs.lstatSync(p).isDirectory()) {
         glob
-          .sync([`${p}/.code-formation/**`])
+          .sync([`${p}/.code-formation/**`], { ignore: exclude })
           .filter((e) => fs.lstatSync(e).isFile())
           .forEach((e) => sourceFiles.push(e))
       } else {
