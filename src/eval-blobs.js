@@ -218,16 +218,46 @@ module.exports = async function (files, profile, log) {
       // process.exit()
       for (let action of APPLY) {
         // let {key, value} = S.ExtractEntry(action)
-        const key = Object.keys(action)[0]
-        const value = action[key]
-        // console.dir({APPLY, action, key, value})
-        // logger.info(colorize(params, {pretty: true}))
-        // process.exit()
+        let snippetName = Object.keys(action)[0]
+        let snippetInjectionParams = action[snippetName]
 
-        // TODO: check if key starts with @ to expand macro, no need for nested macro
+        logger.info(`${chalk.cyan(`apply action:`)} ${chalk.gray(snippetName)}`)
 
-        const snippetName = key
-        const snippetInjectionParams = value
+        // expand macro if any
+        while (snippetName.startsWith("@")) {
+          const macroName = snippetName.split("@")[1]
+
+          const snippet = _.get(common.profile, ["snippets", macroName])
+          if (_.isUndefined(snippet)) {
+            throw new Error(
+              `[${source_id}] cannot find the snippet ${macroName} for macro expansion`
+            )
+          }
+
+          const context = _.merge(
+            {},
+            variables,
+            snippet.params,
+            snippetInjectionParams
+          )
+
+          const macro = await common.invoke(snippet, context) // expands macro
+
+          logger.info(
+            `${chalk.cyan(`expand macro "@${macroName}":`)} ${chalk.gray(
+              macro
+            )}`
+          )
+          // console.dir(macro)
+          const expansion = common.serializeMacro(macro) // compact
+          // console.log(expansion)
+
+          const matches = expansion.match(/^(\S+)\s*(.*)$/) // split function name and the parameters
+          snippetName = matches[1]
+          
+          const rest = matches[2]
+          snippetInjectionParams = await common.parseParams(rest)
+        }
 
         const snippet = _.get(profile, ["snippets", snippetName])
         if (_.isUndefined(snippet)) {
@@ -235,6 +265,10 @@ module.exports = async function (files, profile, log) {
             `[${source_id}] cannot find the snippet "${snippetName}"`
           )
         }
+
+        // console.dir({APPLY, action, key, value})
+        // logger.info(colorize(params, {pretty: true}))
+        // process.exit()
 
         let context = _.merge(
           {},
@@ -353,8 +387,8 @@ module.exports = async function (files, profile, log) {
           SECTION_SEPARATOR,
         },
         // separator: SECTION_SEPARATOR,
-      })      
-      _.set(profile, outpath, destination)      
+      })
+      _.set(profile, outpath, destination)
       // console.log(destination)
 
       // _.set(profile, ['content', 'a'], output)

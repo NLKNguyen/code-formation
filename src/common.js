@@ -39,7 +39,7 @@ const modules = {
   URLSearchParams: URLSearchParams,
 }
 
-invoke = async (snippet, context) => {
+async function invoke(snippet, context) {
   // let snippet = _.get(profile, ["snippets", snippetName])
   // // console.log(profile)
   // if (_.isUndefined(snippet)) {
@@ -102,13 +102,15 @@ invoke = async (snippet, context) => {
 
   return result
 }
+
 function serializeMacro(macro) {
   const S = new SExpr()
   const ast = S.parse(macro, { includedRootParentheses: false })
-  console.dir(ast)
-  process.exit()
+  // console.dir(ast)
+  // process.exit()
   return S.serialize(ast, { includingRootParentheses: false })
 }
+
 async function parseParams(str) {
   const S = new SExpr()
 
